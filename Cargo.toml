@@ -1,6 +1,13 @@
 [package]
-name = "zola_page_date_setter"
 version = "0.1.0"
+description = ""
+keywords = []
+repository = ""
+documentation = ""                    # Point to https://docs.rs/CRATE-NAME
+categories = []
+authors = ["One <one.bgz1@gmailcom>"]
+readme = "README.md"
+license = "MIT OR Apache-2.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
