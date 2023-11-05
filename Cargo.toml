@@ -1,9 +1,10 @@
 [package]
+name = "zola_page_date_setter"
 version = "0.1.0"
-description = ""
+description = "Tool to set dates for zola pages based on git history"
 keywords = []
-repository = ""
-documentation = ""                    # Point to https://docs.rs/CRATE-NAME
+repository = "https://github.com/c-git/zola_page_date_setter"
+documentation = "https://github.com/c-git/zola_page_date_setter"
 categories = []
 authors = ["One <one.bgz1@gmailcom>"]
 readme = "README.md"
