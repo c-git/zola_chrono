@@ -30,7 +30,9 @@ pub fn walk_directory(root_path: &Path) -> anyhow::Result<()> {
 fn process_file(path: &Path) -> anyhow::Result<()> {
     if !should_skip_file(path) {
         let mut data = extract_file_data(path)?;
-        data.update_front_matter()
+        let last_edit_date =
+            get_git_last_edit_date(path).context("Failed to get last edit date from git")?;
+        data.update_front_matter(last_edit_date)
             .context("Failed to update front_matter")?;
         data.write(path).context("Failed to write to file")?;
         info!("{path:?} (processed)");
@@ -38,6 +40,10 @@ fn process_file(path: &Path) -> anyhow::Result<()> {
         trace!("Skipped {path:?}");
     }
     Ok(())
+}
+
+fn get_git_last_edit_date(path: &Path) -> anyhow::Result<toml_edit::Date> {
+    todo!()
 }
 
 struct FileData {
@@ -63,7 +69,7 @@ impl FileData {
     }
 
     /// See cli::Cli command.long for explanation of rules (or readme)
-    fn update_front_matter(&mut self) -> anyhow::Result<()> {
+    fn update_front_matter(&mut self, last_edit_date: toml_edit::Date) -> anyhow::Result<()> {
         let toml = &self.front_matter[..];
         let mut doc = toml
             .parse::<Document>()

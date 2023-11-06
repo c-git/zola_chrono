@@ -1329,6 +1329,7 @@ name = "zola_page_date_setter"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "clap",
  "log",
  "log4rs",
