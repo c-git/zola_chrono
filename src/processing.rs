@@ -1,7 +1,7 @@
-use std::{fs, io::Write, path::Path};
+use std::{fs, io::Write, path::Path, process::Command};
 
 use anyhow::{bail, Context};
-use log::{error, info, trace};
+use log::{debug, error, info, trace};
 use once_cell::sync::Lazy;
 use regex::Regex;
 use toml_edit::Document;
@@ -43,7 +43,25 @@ fn process_file(path: &Path) -> anyhow::Result<()> {
 }
 
 fn get_git_last_edit_date(path: &Path) -> anyhow::Result<toml_edit::Date> {
-    todo!()
+    let output = Command::new("git")
+        .args(["log", "-1", "--format=%cs", path.to_string_lossy().as_ref()])
+        .output()
+        .context("Failed to execute git command")?;
+    if !output.status.success() || !output.stderr.is_empty() {
+        bail!(
+            "Running git failed. status: {} stdout: {}, stderr: {}",
+            output.status,
+            std::str::from_utf8(&output.stdout)?,
+            std::str::from_utf8(&output.stderr)?
+        );
+    }
+    let stdout = std::str::from_utf8(&output.stdout)?;
+    debug!("Got git date of {stdout:?} for {path:?}");
+
+    let year: u16 = stdout[..=3].parse().context("Failed to parse year")?;
+    let month: u8 = stdout[5..=6].parse().context("Failed to parse month")?;
+    let day: u8 = stdout[8..=9].parse().context("Failed to parse day")?;
+    Ok(toml_edit::Date { year, month, day })
 }
 
 struct FileData {
