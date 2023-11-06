@@ -11,7 +11,7 @@ pub fn walk_directory(root_path: &Path) -> anyhow::Result<()> {
         if let Err(e) =
             process_file(root_path).with_context(|| format!("Processing failed for: {root_path:?}"))
         {
-            error!("{e}");
+            error!("{e:?}");
         };
     } else {
         for entry in fs::read_dir(root_path)
