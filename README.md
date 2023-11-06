@@ -1,5 +1,6 @@
-# rust-crate-template
-Intended to be used as a starter for a crate
+# zola_page_date_setter
+Designed to set dates on zola pages. 
+It set's `date` and `updated` in zola [front matter](https://www.getzola.org/documentation/content/page/#front-matter) according to the rules listed [here](https://c-git.github.io/misc/documentation-update/#rules-for-setting-date-and-updated).
 
 ## License
 
