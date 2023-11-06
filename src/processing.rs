@@ -118,16 +118,22 @@ impl<'a> FileData<'a> {
                 updated = None; // Only allow dates
             }
         }
-        // match (last_edit_date, date, updated) {
-        //     (None, _, _) => {
-        //         date = Some(&TODAY);
-        //         updated = None
-        //     }
-        //     (Some(_), None, None) => todo!(),
-        //     (Some(_), None, Some(_)) => todo!(),
-        //     (Some(_), Some(_), None) => todo!(),
-        //     (Some(_), Some(_), Some(_)) => todo!(),
-        // }
+        let (new_date, new_updated) = match (last_edit_date, date, updated) {
+            (None, None, _) => (TODAY.clone(), None),
+            (None, Some(d), _) if is_less(d, TODAY) => (d.clone(), None),
+            (None, Some(d), _) => (d.clone(), None),
+            (Some(_), None, None) => todo!(),
+            (Some(_), None, Some(_)) => todo!(),
+            (Some(_), Some(_), None) => todo!(),
+            (Some(_), Some(_), Some(_)) => todo!(),
+        };
+
+        doc.insert(key_date, new_date);
+        if let Some(nu) = new_updated {
+            doc.insert(key_updated, nu);
+        } else {
+            doc.remove(key_updated);
+        }
         self.front_matter = doc.to_string();
         Ok(())
     }
