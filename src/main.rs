@@ -1,12 +1,14 @@
 use std::{
+    fs,
     io::{self, Write},
     path::PathBuf,
+    time::Instant,
 };
 
 use anyhow::Context;
 use clap::Parser;
 use cli::Cli;
-use log::{debug, LevelFilter};
+use log::{debug, info, LevelFilter};
 use log4rs::{
     append::console::ConsoleAppender,
     config::{Appender, Root},
@@ -51,10 +53,42 @@ fn run(cli: &Cli) -> anyhow::Result<()> {
     }
 
     // Walk tree and process files
+    let start = Instant::now();
+    walk_directory(&root_path)?;
+    info!(
+        "Run duration: {} ms",
+        Instant::now().duration_since(start).as_millis()
+    );
+    println!("Run Completed");
+    Ok(())
+}
 
-    // Process each file
+fn walk_directory(root_path: &PathBuf) -> anyhow::Result<()> {
+    if root_path.is_file() {
+        process_file(root_path)?;
+    } else {
+        for entry in fs::read_dir(root_path)
+            .with_context(|| format!("Failed to read directory: {root_path:?}"))?
+        {
+            let entry =
+                entry.with_context(|| format!("Failed to extract a DirEntry in {root_path:?}"))?;
+            let path = entry.path();
+            walk_directory(&path)?;
+        }
+    }
 
-    todo!("End of Run")
+    Ok(())
+}
+
+fn process_file(path: &PathBuf) -> anyhow::Result<()> {
+    if !should_skip_file(path) {
+        todo!()
+    }
+    Ok(())
+}
+
+fn should_skip_file(path: &PathBuf) -> bool {
+    todo!()
 }
 
 fn confirm_proceed(root_path: &PathBuf) -> bool {
