@@ -4,6 +4,7 @@ use anyhow::{bail, Context};
 use log::{error, info, trace};
 use once_cell::sync::Lazy;
 use regex::Regex;
+use toml_edit::Document;
 
 pub fn walk_directory(root_path: &Path) -> anyhow::Result<()> {
     if root_path.is_file() {
@@ -28,9 +29,9 @@ pub fn walk_directory(root_path: &Path) -> anyhow::Result<()> {
 
 fn process_file(path: &Path) -> anyhow::Result<()> {
     if !should_skip_file(path) {
-        let data = extract_file_data(path)?;
-
-        // TODO Parse toml with https://docs.rs/toml_edit/latest/toml_edit/visit_mut/index.html
+        let mut data = extract_file_data(path)?;
+        data.update_front_matter()
+            .context("Failed to update front_matter")?;
         data.write(path).context("Failed to write to file")?;
         info!("{path:?} (processed)");
     } else {
@@ -58,6 +59,16 @@ impl FileData {
         }
         s.push_str(&self.content);
         file.write_all(s.as_bytes())?;
+        Ok(())
+    }
+
+    fn update_front_matter(&mut self) -> anyhow::Result<()> {
+        let toml = &self.front_matter[..];
+        let mut doc = toml
+            .parse::<Document>()
+            .context("Failed to parse TOML in front matter")?;
+        debug_assert_eq!(doc.to_string(), toml);
+        self.front_matter = doc.to_string();
         Ok(())
     }
 }
