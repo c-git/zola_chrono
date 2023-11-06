@@ -1,4 +1,4 @@
-use std::{fs, path::Path};
+use std::{fs, io::Write, path::Path};
 
 use anyhow::{bail, Context};
 use log::{error, info, trace};
@@ -31,6 +31,7 @@ fn process_file(path: &Path) -> anyhow::Result<()> {
         let data = extract_file_data(path)?;
 
         // TODO Parse toml with https://docs.rs/toml_edit/latest/toml_edit/visit_mut/index.html
+        data.write(path).context("Failed to write to file")?;
         info!("{path:?} (processed)");
     } else {
         trace!("Skipped {path:?}");
@@ -41,6 +42,24 @@ fn process_file(path: &Path) -> anyhow::Result<()> {
 struct FileData {
     front_matter: String,
     content: String,
+}
+impl FileData {
+    fn write(&self, path: &Path) -> anyhow::Result<()> {
+        let mut file = fs::OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .open(path)?;
+        let mut s = "+++".to_string();
+        s.push_str(&self.front_matter);
+        s.push_str("+++\n");
+        if !self.content.is_empty() {
+            // Added a space between to match `dprint`
+            s.push('\n');
+        }
+        s.push_str(&self.content);
+        file.write_all(s.as_bytes())?;
+        Ok(())
+    }
 }
 
 static TOML_RE: Lazy<Regex> = Lazy::new(|| {
