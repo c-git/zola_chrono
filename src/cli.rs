@@ -7,8 +7,9 @@ use log::LevelFilter;
     version,
     about,
     long_about = "Updates the `date` and `updated` fields of the pages front matter
-1. If only `date` is set it should match the last commit date for the file, if not set `updated` to todays date.
-2. If `updated` is set it should match the last commit date for the file, if not set `updated` to todays date."
+1. If `date` is not set, set it to last edit date or todays date if no last edit date (and clear `updated` if set).
+2. If only `date` is set it should match the last commit date for the file, if not set `updated` to todays date.
+3. If `updated` is set it should match the last commit date for the file, if not set `updated` to todays date."
 )]
 pub struct Cli {
     #[arg(
