@@ -8,7 +8,7 @@ use std::{
 use anyhow::Context;
 use clap::Parser;
 use cli::Cli;
-use log::{debug, info, LevelFilter};
+use log::{debug, info, trace, LevelFilter};
 use log4rs::{
     append::console::ConsoleAppender,
     config::{Appender, Root},
@@ -26,7 +26,9 @@ fn main() -> anyhow::Result<()> {
 
 fn init_logging(log_level: LevelFilter) -> anyhow::Result<()> {
     let stdout = ConsoleAppender::builder()
-        .encoder(Box::new(PatternEncoder::new("{h({d} {l} {t} - {m})}{n}")))
+        .encoder(Box::new(PatternEncoder::new(
+            "{h({d(%Y-%m-%d %H:%M:%S)} {l} {t} - {m})}{n}",
+        )))
         .build();
     let config = log4rs::Config::builder()
         .appender(Appender::builder().build("stdout", Box::new(stdout)))
@@ -83,7 +85,10 @@ fn walk_directory(root_path: &Path) -> anyhow::Result<()> {
 fn process_file(path: &Path) -> anyhow::Result<()> {
     if !should_skip_file(path) {
         // TODO Pattern on zola code https://github.com/c-git/zola/blob/3a73c9c5449f2deda0d287f9359927b0440a77af/components/content/src/front_matter/split.rs#L46
-        println!("{path:?}");
+        // TODO Parse toml with https://docs.rs/toml_edit/latest/toml_edit/visit_mut/index.html
+        info!("{path:?} (processed)");
+    } else {
+        trace!("Skipped {path:?}");
     }
     Ok(())
 }
