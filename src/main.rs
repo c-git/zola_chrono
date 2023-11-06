@@ -47,7 +47,7 @@ fn run(cli: &Cli) -> anyhow::Result<()> {
     })?;
 
     // Confirm user wants to make changes
-    if !confirm_proceed(&root_path) {
+    if !cli.unattended && !confirm_proceed(&root_path) {
         println!("Aborted at users request");
         return Ok(());
     }

@@ -17,6 +17,9 @@ pub struct Cli {
     )]
     pub root_path: String,
 
+    #[arg(long, short)]
+    pub unattended: bool,
+
     /// Set logging level to use
     #[arg(long, short, value_enum, default_value_t = LogLevel::Info)]
     pub log_level: LogLevel,
