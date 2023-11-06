@@ -1,7 +1,9 @@
 use std::{fs, path::Path};
 
-use anyhow::Context;
+use anyhow::{bail, Context};
 use log::{error, info, trace};
+use once_cell::sync::Lazy;
+use regex::Regex;
 
 pub fn walk_directory(root_path: &Path) -> anyhow::Result<()> {
     if root_path.is_file() {
@@ -26,7 +28,7 @@ pub fn walk_directory(root_path: &Path) -> anyhow::Result<()> {
 
 fn process_file(path: &Path) -> anyhow::Result<()> {
     if !should_skip_file(path) {
-        let front_matter = extract_front_matter(path).context("Failed to extract front matter");
+        let data = extract_file_data(path)?;
 
         // TODO Parse toml with https://docs.rs/toml_edit/latest/toml_edit/visit_mut/index.html
         info!("{path:?} (processed)");
@@ -36,9 +38,40 @@ fn process_file(path: &Path) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn extract_front_matter(path: &Path) -> anyhow::Result<String> {
-    // TODO Pattern on zola code https://github.com/c-git/zola/blob/3a73c9c5449f2deda0d287f9359927b0440a77af/components/content/src/front_matter/split.rs#L46
-    todo!()
+struct FileData {
+    front_matter: String,
+    content: String,
+}
+
+static TOML_RE: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(
+        r"^[[:space:]]*\+\+\+(\r?\n(?s).*?(?-s))\+\+\+[[:space:]]*(?:$|(?:\r?\n((?s).*(?-s))$))",
+    )
+    .unwrap()
+});
+
+/// Split the file data into front matter and content
+fn extract_file_data(path: &Path) -> anyhow::Result<FileData> {
+    // Patterned on zola code https://github.com/c-git/zola/blob/3a73c9c5449f2deda0d287f9359927b0440a77af/components/content/src/front_matter/split.rs#L46
+
+    let content = fs::read_to_string(path).context("Failed to read file")?;
+
+    // 2. extract the front matter and the content
+    let caps = if let Some(caps) = TOML_RE.captures(&content) {
+        caps
+    } else {
+        bail!("Failed to find front matter");
+    };
+    // caps[0] is the full match
+    // caps[1] => front matter
+    // caps[2] => content
+    let front_matter = caps.get(1).unwrap().as_str().to_string();
+    let content = caps.get(2).map_or("", |m| m.as_str()).to_string();
+
+    Ok(FileData {
+        front_matter,
+        content,
+    })
 }
 
 fn should_skip_file(path: &Path) -> bool {
