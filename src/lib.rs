@@ -1,4 +1,5 @@
 use std::{
+    env,
     io::{self, Write},
     path::{Path, PathBuf},
     time::Instant,
@@ -33,6 +34,9 @@ pub fn run(cli: &Cli) -> anyhow::Result<()> {
         println!("Aborted at users request");
         return Ok(());
     }
+
+    // Change current working directory to target folder so that git commands will work correctly
+    env::set_current_dir(&root_path).context("Failed change working directory to {root_path:?}")?;
 
     // Walk tree and process files
     let start = Instant::now();
