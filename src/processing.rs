@@ -42,7 +42,7 @@ fn process_file(path: &Path) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn get_git_last_edit_date(path: &Path) -> anyhow::Result<toml_edit::Date> {
+fn get_git_last_edit_date(path: &Path) -> anyhow::Result<Option<toml_edit::Date>> {
     let output = Command::new("git")
         .args(["log", "-1", "--format=%cs", path.to_string_lossy().as_ref()])
         .output()
@@ -58,10 +58,14 @@ fn get_git_last_edit_date(path: &Path) -> anyhow::Result<toml_edit::Date> {
     let stdout = std::str::from_utf8(&output.stdout)?;
     debug!("Got git date of {stdout:?} for {path:?}");
 
-    let year: u16 = stdout[..=3].parse().context("Failed to parse year")?;
-    let month: u8 = stdout[5..=6].parse().context("Failed to parse month")?;
-    let day: u8 = stdout[8..=9].parse().context("Failed to parse day")?;
-    Ok(toml_edit::Date { year, month, day })
+    if stdout.is_empty() {
+        Ok(None)
+    } else {
+        let year: u16 = stdout[..=3].parse().context("Failed to parse year")?;
+        let month: u8 = stdout[5..=6].parse().context("Failed to parse month")?;
+        let day: u8 = stdout[8..=9].parse().context("Failed to parse day")?;
+        Ok(Some(toml_edit::Date { year, month, day }))
+    }
 }
 
 struct FileData {
@@ -87,7 +91,10 @@ impl FileData {
     }
 
     /// See cli::Cli command.long for explanation of rules (or readme)
-    fn update_front_matter(&mut self, last_edit_date: toml_edit::Date) -> anyhow::Result<()> {
+    fn update_front_matter(
+        &mut self,
+        last_edit_date: Option<toml_edit::Date>,
+    ) -> anyhow::Result<()> {
         let toml = &self.front_matter[..];
         let mut doc = toml
             .parse::<Document>()
