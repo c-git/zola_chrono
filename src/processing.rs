@@ -1,7 +1,8 @@
 use std::{fs, io::Write, path::Path, process::Command};
 
 use anyhow::{bail, Context};
-use log::{debug, error, info, trace};
+use chrono::Datelike;
+use log::{debug, error, info, trace, warn};
 use once_cell::sync::Lazy;
 use regex::Regex;
 use toml_edit::Document;
@@ -68,11 +69,12 @@ fn get_git_last_edit_date(path: &Path) -> anyhow::Result<Option<toml_edit::Date>
     }
 }
 
-struct FileData {
+struct FileData<'a> {
+    path: &'a Path,
     front_matter: String,
     content: String,
 }
-impl FileData {
+impl<'a> FileData<'a> {
     fn write(&self, path: &Path) -> anyhow::Result<()> {
         let mut file = fs::OpenOptions::new()
             .write(true)
@@ -95,15 +97,56 @@ impl FileData {
         &mut self,
         last_edit_date: Option<toml_edit::Date>,
     ) -> anyhow::Result<()> {
+        let key_date = "date";
+        let key_updated = "updated";
         let toml = &self.front_matter[..];
         let mut doc = toml
             .parse::<Document>()
             .context("Failed to parse TOML in front matter")?;
         debug_assert_eq!(doc.to_string(), toml);
+        let mut date = doc.get(key_date);
+        let mut updated = doc.get(key_updated);
+        if let Some(d) = date {
+            if !d.is_datetime() {
+                warn!("Non date value found for `date` in {:?}", self.path);
+                date = None; // Only allow dates
+            }
+        }
+        if let Some(u) = updated {
+            if !u.is_datetime() {
+                warn!("Non date value found for `updated` in {:?}", self.path);
+                updated = None; // Only allow dates
+            }
+        }
+        // match (last_edit_date, date, updated) {
+        //     (None, _, _) => {
+        //         date = Some(&TODAY);
+        //         updated = None
+        //     }
+        //     (Some(_), None, None) => todo!(),
+        //     (Some(_), None, Some(_)) => todo!(),
+        //     (Some(_), Some(_), None) => todo!(),
+        //     (Some(_), Some(_), Some(_)) => todo!(),
+        // }
         self.front_matter = doc.to_string();
         Ok(())
     }
 }
+
+static TODAY: Lazy<toml_edit::Item> = Lazy::new(|| {
+    let now = chrono::Local::now();
+    toml_edit::Item::Value(toml_edit::Value::Datetime(toml_edit::Formatted::new(
+        toml_edit::Datetime {
+            date: Some(toml_edit::Date {
+                year: now.year() as _,
+                month: now.month() as _,
+                day: now.day() as _,
+            }),
+            time: None,
+            offset: None,
+        },
+    )))
+});
 
 static TOML_RE: Lazy<Regex> = Lazy::new(|| {
     Regex::new(
@@ -131,6 +174,7 @@ fn extract_file_data(path: &Path) -> anyhow::Result<FileData> {
     let content = caps.get(2).map_or("", |m| m.as_str()).to_string();
 
     Ok(FileData {
+        path,
         front_matter,
         content,
     })
