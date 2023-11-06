@@ -25,8 +25,10 @@ pub fn run(cli: &Cli) -> anyhow::Result<()> {
         .with_context(|| format!("Failed to canonicalize path: '{}'", cli.root_path))?;
 
     // Confirm it is safe to make changes
-    check_version_control(&root_path, &CheckOptions::new()).with_context(|| {
-        format!("Failed to find a clean version control system before changes at {root_path:?}")
+    let mut check_options = CheckOptions::new();
+    check_options.allow_staged = true;
+    check_version_control(&root_path, &check_options).with_context(|| {
+        format!("Failed to find a clean version control system. Files must be at least staged before changes.\nPath:{root_path:?}")
     })?;
 
     // Confirm user wants to make changes
