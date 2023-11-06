@@ -62,6 +62,7 @@ impl FileData {
         Ok(())
     }
 
+    /// See cli::Cli command.long for explanation of rules (or readme)
     fn update_front_matter(&mut self) -> anyhow::Result<()> {
         let toml = &self.front_matter[..];
         let mut doc = toml

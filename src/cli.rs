@@ -6,7 +6,9 @@ use log::LevelFilter;
     author,
     version,
     about,
-    long_about = "Updates the `date` and `updated` fields of the pages front matter"
+    long_about = "Updates the `date` and `updated` fields of the pages front matter
+1. If only `date` is set it should match the last commit date for the file, if not set `updated` to todays date.
+2. If `updated` is set it should match the last commit date for the file, if not set `updated` to todays date."
 )]
 pub struct Cli {
     #[arg(
