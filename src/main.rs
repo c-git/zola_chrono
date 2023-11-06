@@ -66,5 +66,5 @@ fn confirm_proceed(root_path: &PathBuf) -> bool {
         .read_line(&mut user_input)
         .expect("Failed to read line");
 
-    user_input == "yes\n"
+    user_input.trim() == "yes"
 }
