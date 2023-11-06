@@ -1,7 +1,7 @@
 use std::{
     fs,
     io::{self, Write},
-    path::PathBuf,
+    path::{Path, PathBuf},
     time::Instant,
 };
 
@@ -63,7 +63,7 @@ fn run(cli: &Cli) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn walk_directory(root_path: &PathBuf) -> anyhow::Result<()> {
+fn walk_directory(root_path: &Path) -> anyhow::Result<()> {
     if root_path.is_file() {
         process_file(root_path)?;
     } else {
@@ -80,18 +80,19 @@ fn walk_directory(root_path: &PathBuf) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn process_file(path: &PathBuf) -> anyhow::Result<()> {
+fn process_file(path: &Path) -> anyhow::Result<()> {
     if !should_skip_file(path) {
-        todo!()
+        // TODO Pattern on zola code https://github.com/c-git/zola/blob/3a73c9c5449f2deda0d287f9359927b0440a77af/components/content/src/front_matter/split.rs#L46
+        println!("{path:?}");
     }
     Ok(())
 }
 
-fn should_skip_file(path: &PathBuf) -> bool {
-    todo!()
+fn should_skip_file(path: &Path) -> bool {
+    !path.extension().is_some_and(|ext| ext == "md") || path.ends_with("_index.md")
 }
 
-fn confirm_proceed(root_path: &PathBuf) -> bool {
+fn confirm_proceed(root_path: &Path) -> bool {
     print!("Are you sure you want to update dates at {root_path:?}? (enter 'yes' to proceed) ");
     io::stdout().flush().expect("Failed to flush to stdout");
 
