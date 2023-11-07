@@ -139,6 +139,27 @@ impl<'a> FileData<'a> {
     }
 }
 
+/// Checks if both a and b are dates and if a < b
+fn is_less_date(a: &toml_edit::Item, b: &toml_edit::Item) -> bool {
+    todo!()
+}
+
+// Check if both a and b are dates and a == b
+fn is_equal_date(a: &toml_edit::Item, b: &toml_edit::Item) -> bool {
+    match (a, b) {
+        (toml_edit::Item::Value(a), toml_edit::Item::Value(b)) => match (a, b) {
+            (toml_edit::Value::Datetime(a), toml_edit::Value::Datetime(b)) => {
+                match (a.value().date, b.value().date) {
+                    (Some(a), Some(b)) => a.year == b.year && a.month == b.month && a.day == b.day,
+                    _ => false,
+                }
+            }
+            _ => false,
+        },
+        _ => false,
+    }
+}
+
 static TODAY: Lazy<toml_edit::Item> = Lazy::new(|| {
     let now = chrono::Local::now();
     toml_edit::Item::Value(toml_edit::Value::Datetime(toml_edit::Formatted::new(
