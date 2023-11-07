@@ -130,6 +130,26 @@ impl<'a> FileData<'a> {
             }
         }
 
+        // Clear date if it is in the future
+        if let Some(curr_date) = date {
+            if is_less_than_date(&TODAY, curr_date) {
+                warn!(
+                    "date is set in the future. Date is being ignored in {:?}",
+                    self.path
+                );
+                date = None;
+            }
+        }
+        if let Some(curr_updated) = updated {
+            if is_less_than_date(&TODAY, curr_updated) {
+                warn!(
+                    "updated is set in the future. updated is being ignored in {:?}",
+                    self.path
+                );
+                date = None;
+            }
+        }
+
         // Set new date values base on the rules.
         // Prefer reusing the existing values as only the date is set in the generated value and not time nor offset
         let (new_date, new_updated) = match (last_edit_date, date, updated) {
