@@ -163,6 +163,16 @@ fn is_less_than_date(a: &toml_edit::Item, b: &toml_edit::Item) -> bool {
     }
 }
 
+fn item_from_date(d: toml_edit::Date) -> toml_edit::Item {
+    toml_edit::Item::Value(toml_edit::Value::Datetime(toml_edit::Formatted::new(
+        toml_edit::Datetime {
+            date: Some(d),
+            time: None,
+            offset: None,
+        },
+    )))
+}
+
 // Check if both a and b are dates and a == b
 fn is_equal_date(a: &toml_edit::Item, b: &toml_edit::Item) -> bool {
     match (a, b) {
@@ -186,17 +196,11 @@ fn test_is_equal_date() {
 
 #[test]
 fn test_is_less_than() {
-    let past = toml_edit::Item::Value(toml_edit::Value::Datetime(toml_edit::Formatted::new(
-        toml_edit::Datetime {
-            date: Some(toml_edit::Date {
-                year: 1900,
-                month: 1,
-                day: 1,
-            }),
-            time: None,
-            offset: None,
-        },
-    )));
+    let past = item_from_date(toml_edit::Date {
+        year: 1900,
+        month: 1,
+        day: 1,
+    });
     assert!(is_less_than_date(&past, &TODAY));
     assert!(!is_less_than_date(&TODAY, &past));
     assert!(!is_less_than_date(&TODAY, &TODAY));
@@ -204,17 +208,11 @@ fn test_is_less_than() {
 
 static TODAY: Lazy<toml_edit::Item> = Lazy::new(|| {
     let now = chrono::Local::now();
-    toml_edit::Item::Value(toml_edit::Value::Datetime(toml_edit::Formatted::new(
-        toml_edit::Datetime {
-            date: Some(toml_edit::Date {
-                year: now.year() as _,
-                month: now.month() as _,
-                day: now.day() as _,
-            }),
-            time: None,
-            offset: None,
-        },
-    )))
+    item_from_date(toml_edit::Date {
+        year: now.year() as _,
+        month: now.month() as _,
+        day: now.day() as _,
+    })
 });
 
 static TOML_RE: Lazy<Regex> = Lazy::new(|| {
