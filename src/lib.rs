@@ -28,7 +28,7 @@ pub fn run(cli: &Cli) -> anyhow::Result<()> {
     let mut check_options = CheckOptions::new();
     check_options.allow_staged = true;
     check_version_control(&root_path, &check_options).with_context(|| {
-        format!("Failed to find a clean version control system. Files must be at least staged before changes.\nPath:{root_path:?}")
+        format!("Failed to find a clean version control system. Files must be at least staged before tool can run.\nPath:{root_path:?}")
     })?;
 
     // Confirm user wants to make changes
