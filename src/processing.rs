@@ -196,9 +196,19 @@ impl<'a> FileData<'a> {
             }
         };
 
-        doc.insert(key_date, new_date);
+        match doc.entry(key_date) {
+            toml_edit::Entry::Occupied(mut entry) => *entry.get_mut() = new_date,
+            toml_edit::Entry::Vacant(entry) => {
+                entry.insert(new_date);
+            }
+        }
         if let Some(nu) = new_updated {
-            doc.insert(key_updated, nu);
+            match doc.entry(key_updated) {
+                toml_edit::Entry::Occupied(mut entry) => *entry.get_mut() = nu,
+                toml_edit::Entry::Vacant(entry) => {
+                    entry.insert(nu);
+                }
+            }
         } else {
             doc.remove(key_updated);
         }
