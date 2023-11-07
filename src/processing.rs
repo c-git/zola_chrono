@@ -57,7 +57,7 @@ fn get_git_last_edit_date(path: &Path) -> anyhow::Result<Option<toml_edit::Date>
         );
     }
     let stdout = std::str::from_utf8(&output.stdout)?;
-    debug!("Got git date of {stdout:?} for {path:?}");
+    debug!("Git Date: {stdout:?} - {path:?}");
 
     if stdout.is_empty() {
         Ok(None)
