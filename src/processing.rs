@@ -179,6 +179,29 @@ fn is_equal_date(a: &toml_edit::Item, b: &toml_edit::Item) -> bool {
     }
 }
 
+#[test]
+fn test_is_equal_date() {
+    assert!(is_equal_date(&TODAY, &TODAY));
+}
+
+#[test]
+fn test_is_less_than() {
+    let past = toml_edit::Item::Value(toml_edit::Value::Datetime(toml_edit::Formatted::new(
+        toml_edit::Datetime {
+            date: Some(toml_edit::Date {
+                year: 1900,
+                month: 1,
+                day: 1,
+            }),
+            time: None,
+            offset: None,
+        },
+    )));
+    assert!(is_less_than_date(&past, &TODAY));
+    assert!(!is_less_than_date(&TODAY, &past));
+    assert!(!is_less_than_date(&TODAY, &TODAY));
+}
+
 static TODAY: Lazy<toml_edit::Item> = Lazy::new(|| {
     let now = chrono::Local::now();
     toml_edit::Item::Value(toml_edit::Value::Datetime(toml_edit::Formatted::new(
