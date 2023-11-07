@@ -120,7 +120,7 @@ impl<'a> FileData<'a> {
         }
         let (new_date, new_updated) = match (last_edit_date, date, updated) {
             (None, None, _) => (TODAY.clone(), None),
-            (None, Some(d), _) if is_less(d, TODAY) => (d.clone(), None),
+            (None, Some(d), _) if is_less_than_date(d, &TODAY) => (d.clone(), None),
             (None, Some(d), _) => (d.clone(), None),
             (Some(_), None, None) => todo!(),
             (Some(_), None, Some(_)) => todo!(),
@@ -140,8 +140,27 @@ impl<'a> FileData<'a> {
 }
 
 /// Checks if both a and b are dates and if a < b
-fn is_less_date(a: &toml_edit::Item, b: &toml_edit::Item) -> bool {
-    todo!()
+fn is_less_than_date(a: &toml_edit::Item, b: &toml_edit::Item) -> bool {
+    match (a, b) {
+        (toml_edit::Item::Value(a), toml_edit::Item::Value(b)) => match (a, b) {
+            (toml_edit::Value::Datetime(a), toml_edit::Value::Datetime(b)) => {
+                match (a.value().date, b.value().date) {
+                    (Some(a), Some(b)) => match a.year.cmp(&b.year) {
+                        std::cmp::Ordering::Less => true,
+                        std::cmp::Ordering::Equal => match a.month.cmp(&b.month) {
+                            std::cmp::Ordering::Less => true,
+                            std::cmp::Ordering::Equal => a.day < b.day,
+                            std::cmp::Ordering::Greater => false,
+                        },
+                        std::cmp::Ordering::Greater => false,
+                    },
+                    _ => false,
+                }
+            }
+            _ => false,
+        },
+        _ => false,
+    }
 }
 
 // Check if both a and b are dates and a == b
