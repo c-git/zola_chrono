@@ -106,6 +106,8 @@ impl<'a> FileData<'a> {
         debug_assert_eq!(doc.to_string(), toml);
         let mut date = doc.get(key_date);
         let mut updated = doc.get(key_updated);
+
+        // Check for wrong type
         if let Some(d) = date {
             if !d.is_datetime() {
                 warn!("Non date value found for `date` in {:?}", self.path);
@@ -118,14 +120,80 @@ impl<'a> FileData<'a> {
                 updated = None; // Only allow dates
             }
         }
+
+        // Ensure if updated exists it is greater than or equal to date otherwise discard value
+        if let Some(updated_date) = updated {
+            if let Some(date) = date {
+                if is_less_than_date(updated_date, date) {
+                    warn!("`updated` is before `date` but this should never happen. `updated` being ignored in {:?}", self.path);
+                    updated = None;
+                }
+            }
+        }
+
+        // Set new date values base on the rules.
+        // Prefer reusing the existing values as only the date is set in the generated value and not time nor offset
         let (new_date, new_updated) = match (last_edit_date, date, updated) {
             (None, None, _) => (TODAY.clone(), None),
-            (None, Some(d), _) if is_less_than_date(d, &TODAY) => (d.clone(), None),
-            (None, Some(d), _) => (d.clone(), None),
-            (Some(_), None, None) => todo!(),
-            (Some(_), None, Some(_)) => todo!(),
-            (Some(_), Some(_), None) => todo!(),
-            (Some(_), Some(_), Some(_)) => todo!(),
+            (None, Some(curr_date), _) => {
+                if is_less_than_date(curr_date, &TODAY) {
+                    (curr_date.clone(), Some(TODAY.clone()))
+                } else if is_equal_date(curr_date, &TODAY) {
+                    (curr_date.clone(), None)
+                } else {
+                    debug_assert!(is_less_than_date(&TODAY, curr_date));
+                    (TODAY.clone(), None)
+                }
+            }
+            (Some(last), None, _) => {
+                let last = item_from_date(last);
+                if is_equal_date(&last, &TODAY) {
+                    (last, None)
+                } else {
+                    (last, Some(TODAY.clone()))
+                }
+            }
+            (Some(last), Some(date), None) => {
+                let last = item_from_date(last);
+                if is_equal_date(&last, date) {
+                    (date.clone(), None)
+                } else if is_less_than_date(date, &TODAY) {
+                    (date.clone(), Some(TODAY.clone()))
+                } else if is_equal_date(date, &TODAY) {
+                    (date.clone(), None)
+                } else {
+                    debug_assert!(is_less_than_date(&TODAY, date));
+                    (last, Some(TODAY.clone()))
+                }
+            }
+            (Some(last), Some(date), Some(updated)) => {
+                debug_assert!(
+                    !is_less_than_date(updated, date),
+                    "THIS SHOULDN'T HAPPEN WAS SUPPOSED TO HAVE BEEN CHECKED"
+                );
+                let last = item_from_date(last);
+                if is_less_than_date(date, &last) || is_equal_date(date, &last) {
+                    if is_equal_date(date, &last) || is_equal_date(updated, &TODAY) {
+                        (date.clone(), Some(updated.clone()))
+                    } else {
+                        (date.clone(), Some(TODAY.clone()))
+                    }
+                } else if is_less_than_date(date, &TODAY) || is_equal_date(date, &TODAY) {
+                    if is_equal_date(updated, &TODAY) {
+                        (date.clone(), Some(updated.clone()))
+                    } else {
+                        (date.clone(), Some(TODAY.clone()))
+                    }
+                } else {
+                    debug_assert!(is_less_than_date(&TODAY, date));
+
+                    if is_equal_date(updated, &TODAY) {
+                        (TODAY.clone(), Some(updated.clone()))
+                    } else {
+                        (TODAY.clone(), None)
+                    }
+                }
+            }
         };
 
         doc.insert(key_date, new_date);
