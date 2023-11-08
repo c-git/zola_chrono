@@ -480,13 +480,13 @@ mod tests {
             mock.calculate_new_date_and_updated(org_date, org_updated, last_edit_date);
 
         let actual_is_changed =
-            is_new_same_as_org(org_date, org_updated, &actual_date, &actual_updated);
+            !is_new_same_as_org(org_date, org_updated, &actual_date, &actual_updated);
 
         assert_same(Some(&actual_date), expected_date, "date");
         assert_same(actual_updated.as_ref(), expected_updated, "updated");
         assert_eq!(
             actual_is_changed, expected_is_changed,
-            "is_change doesn't match expectation"
+            "is_changed doesn't match expectation"
         );
     }
 }
