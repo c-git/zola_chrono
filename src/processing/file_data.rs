@@ -463,7 +463,7 @@ mod tests {
     #[case(PAST2,        PAST2,        PAST2,        true,  PAST2,        *TODAY_TUPLE, "12")]
     #[case(PAST2,        PAST2,        PAST3,        true,  PAST2,        *TODAY_TUPLE, "13")]
     #[case(PAST2,        PAST2,        *TODAY_TUPLE, true,  PAST2,        *TODAY_TUPLE, "14")]
-    #[case(PAST2,        PAST3,        None,         true,  PAST3,        *TODAY_TUPLE, "15")]
+    #[case(PAST2,        PAST3,        None,         false,  PAST3,        None, /* */   "15")]
     #[case(PAST2,        PAST3,        PAST1,        true,  PAST3,        *TODAY_TUPLE, "16")]
     #[case(PAST2,        PAST3,        PAST2,        true,  PAST3,        *TODAY_TUPLE, "17")]
     #[case(PAST2,        PAST3,        PAST3,        false, PAST3,        PAST3, /* */  "18")]
