@@ -471,6 +471,16 @@ mod tests {
     #[case(PAST2,        *TODAY_TUPLE, None,         *TODAY_TUPLE, None,         "20")]
     #[case(PAST2,        *TODAY_TUPLE, PAST1,        *TODAY_TUPLE, None,         "21")]
     #[case(PAST2,        *TODAY_TUPLE, *TODAY_TUPLE, *TODAY_TUPLE, None,         "22")]
+    #[case(None,         None,         None,         *TODAY_TUPLE, None,         "23")]
+    #[case(None,         None,         PAST1,        *TODAY_TUPLE, None,         "24")]
+    #[case(None,         None,         *TODAY_TUPLE, *TODAY_TUPLE, None,         "25")]
+    #[case(None,         PAST1,        None,         PAST1,        *TODAY_TUPLE, "26")]
+    #[case(None,         PAST1,        PAST1,        PAST1,        *TODAY_TUPLE, "27")]
+    #[case(None,         PAST1,        PAST2,        PAST1,        *TODAY_TUPLE, "28")]
+    #[case(None,         PAST1,        *TODAY_TUPLE, PAST1,        *TODAY_TUPLE, "29")]
+    #[case(None,         *TODAY_TUPLE, None,         *TODAY_TUPLE, None,         "30")]
+    #[case(None,         *TODAY_TUPLE, PAST1,        *TODAY_TUPLE, None,         "31")]
+    #[case(None,         *TODAY_TUPLE, *TODAY_TUPLE, *TODAY_TUPLE, None,         "32")]
     fn date_logic_case(
         #[case] last: DTopt,
         #[case] date: DTopt,
