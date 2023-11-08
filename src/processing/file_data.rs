@@ -441,7 +441,7 @@ mod tests {
     }
 
     #[rstest]
-    #[case(None,         None,             None,             false, *TODAY_TUPLE,     None,         "Base case: No dates")]
+    #[case(None,         None,             None,             true,  *TODAY_TUPLE,     None,         "Base case: No dates")]
     #[case(None,         Some((4000,1,1)), None,             true,  *TODAY_TUPLE,     None,         "Future date removed")]
     #[case(*TODAY_TUPLE, Some((2000,1,1)), Some((2011,1,1)), true,  Some((2000,1,1)), *TODAY_TUPLE, "Both date and updated in past")]
     fn date_logic_case(
