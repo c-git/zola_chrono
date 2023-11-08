@@ -343,7 +343,7 @@ fn date_to_display(d: Option<&toml_edit::Item>) -> String {
         if let toml_edit::Item::Value(d) = d {
             if let toml_edit::Value::Datetime(d) = d {
                 if let Some(d) = d.value().date {
-                    format!("{}-{}-{}", d.year, d.month, d.day)
+                    format!("{:0>4}-{:0>2}-{:0>2}", d.year, d.month, d.day)
                 } else {
                     panic!("Expected Some")
                 }
@@ -419,17 +419,21 @@ mod tests {
         }
     }
 
-    fn assert_same(actual: Option<&toml_edit::Item>, expected: Option<&toml_edit::Item>) {
+    fn assert_same(
+        actual: Option<&toml_edit::Item>,
+        expected: Option<&toml_edit::Item>,
+        variable_name: &str,
+    ) {
         match (actual, expected) {
             (None, None) => (),
             (None, Some(_)) | (Some(_), None) => panic!(
-                "actual does not match expected.\nactual: {}\nexpected: {}",
+                "{variable_name:?} actual does not match expected.\nactual: {}\nexpected: {}",
                 date_to_display(actual),
                 date_to_display(expected)
             ),
             (Some(a), Some(b)) => assert!(
                 is_equal_date(a, b),
-                "actual does not match expected.\nactual: {}\nexpected: {}",
+                "{variable_name:?} actual does not match expected.\nactual: {}\nexpected: {}",
                 date_to_display(actual),
                 date_to_display(expected)
             ),
@@ -437,7 +441,9 @@ mod tests {
     }
 
     #[rstest]
-    #[case(None, None, None, false, *TODAY_TUPLE, None)] // Base case: No dates
+    #[case(None,         None,             None,             false, *TODAY_TUPLE,     None,         "Base case: No dates")]
+    #[case(None,         Some((4000,1,1)), None,             true,  *TODAY_TUPLE,     None,         "Future date removed")]
+    #[case(*TODAY_TUPLE, Some((2000,1,1)), Some((2011,1,1)), true,  Some((2000,1,1)), *TODAY_TUPLE, "Both date and updated in past")]
     fn date_logic_case(
         #[case] last: DTopt,
         #[case] date: DTopt,
@@ -445,7 +451,9 @@ mod tests {
         #[case] expected_is_changed: bool,
         #[case] expected_date: DTopt,
         #[case] expected_updated: DTopt,
+        #[case] test_name: &str,
     ) {
+        println!("Test Name: {test_name:?}");
         let path = PathBuf::new();
         let mock = FileData::new(&path, Default::default(), Default::default());
 
@@ -474,8 +482,8 @@ mod tests {
         let actual_is_changed =
             is_new_same_as_org(org_date, org_updated, &actual_date, &actual_updated);
 
-        assert_same(Some(&actual_date), expected_date);
-        assert_same(actual_updated.as_ref(), expected_updated);
+        assert_same(Some(&actual_date), expected_date, "date");
+        assert_same(actual_updated.as_ref(), expected_updated, "updated");
         assert_eq!(
             actual_is_changed, expected_is_changed,
             "is_change doesn't match expectation"
