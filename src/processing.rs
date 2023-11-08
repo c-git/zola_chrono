@@ -35,7 +35,9 @@ fn process_file(path: &Path) -> anyhow::Result<()> {
             get_git_last_edit_date(path).context("Failed to get last edit date from git")?;
         data.update_front_matter(last_edit_date)
             .context("Failed to update front_matter")?;
-        data.write(path).context("Failed to write to file")?;
+        if data.changed {
+            data.write(path).context("Failed to write to file")?
+        };
     } else {
         trace!("Skipped {path:?}");
     }
@@ -69,12 +71,14 @@ fn get_git_last_edit_date(path: &Path) -> anyhow::Result<Option<toml_edit::Date>
 }
 
 struct FileData<'a> {
+    changed: bool,
     path: &'a Path,
     front_matter: String,
     content: String,
 }
 impl<'a> FileData<'a> {
     fn write(&self, path: &Path) -> anyhow::Result<()> {
+        debug_assert!(!self.changed, "We don't want to write unless we've changed. We don't want this to happen because we are just writing needlessly");
         let mut file = fs::OpenOptions::new()
             .write(true)
             .truncate(true)
@@ -105,6 +109,10 @@ impl<'a> FileData<'a> {
         debug_assert_eq!(doc.to_string(), toml);
         let mut date = doc.get(key_date);
         let mut updated = doc.get(key_updated);
+
+        // Record original values to compare if they changed at the end. Clone is cheap it's just of a reference
+        let org_date = date.clone();
+        let org_updated = updated.clone();
 
         // Check for wrong type
         if let Some(d) = date {
@@ -160,8 +168,7 @@ impl<'a> FileData<'a> {
                 } else if is_equal_date(curr_date, &TODAY) {
                     (curr_date.clone(), None)
                 } else {
-                    debug_assert!(is_less_than_date(&TODAY, curr_date));
-                    (TODAY.clone(), None)
+                    unreachable!("Future dates should have been cleared before starting, so must be less than or equal.")
                 }
             }
             (Some(last), None, _) => {
@@ -215,24 +222,49 @@ impl<'a> FileData<'a> {
             }
         };
 
-        match doc.entry(key_date) {
-            toml_edit::Entry::Occupied(mut entry) => *entry.get_mut() = new_date,
-            toml_edit::Entry::Vacant(entry) => {
-                entry.insert(new_date);
-            }
-        }
-        if let Some(nu) = new_updated {
-            match doc.entry(key_updated) {
-                toml_edit::Entry::Occupied(mut entry) => *entry.get_mut() = nu,
+        // Check if we've changed the starting values
+        // NB: - date must change if it was None
+        //     - This approach is slower due to loss of short circuit evaluation but I can read it, before it was...
+        let is_date_same = org_date.is_some() && is_equal_date(org_date.unwrap(), &new_date);
+        let did_update_start_and_end_none =
+            org_updated.is_none() && org_updated.is_none() == new_updated.is_none();
+        let did_updated_start_some_and_end_same_value = org_updated.is_some()
+            && new_updated.is_some()
+            && is_equal_date(org_updated.unwrap(), new_updated.as_ref().unwrap());
+        let is_update_same =
+            did_update_start_and_end_none || did_updated_start_some_and_end_same_value;
+        let is_new_same_as_org = is_date_same && is_update_same;
+        if !is_new_same_as_org {
+            self.changed = true;
+            match doc.entry(key_date) {
+                toml_edit::Entry::Occupied(mut entry) => *entry.get_mut() = new_date,
                 toml_edit::Entry::Vacant(entry) => {
-                    entry.insert(nu);
+                    entry.insert(new_date);
                 }
             }
-        } else {
-            doc.remove(key_updated);
+            if let Some(nu) = new_updated {
+                match doc.entry(key_updated) {
+                    toml_edit::Entry::Occupied(mut entry) => *entry.get_mut() = nu,
+                    toml_edit::Entry::Vacant(entry) => {
+                        entry.insert(nu);
+                    }
+                }
+            } else {
+                doc.remove(key_updated);
+            }
+            self.front_matter = doc.to_string();
         }
-        self.front_matter = doc.to_string();
+
         Ok(())
+    }
+
+    fn new(path: &'a Path, front_matter: String, content: String) -> Self {
+        Self {
+            changed: false,
+            path,
+            front_matter,
+            content,
+        }
     }
 }
 
@@ -337,11 +369,7 @@ fn extract_file_data(path: &Path) -> anyhow::Result<FileData> {
     let front_matter = caps.get(1).unwrap().as_str().to_string();
     let content = caps.get(2).map_or("", |m| m.as_str()).to_string();
 
-    Ok(FileData {
-        path,
-        front_matter,
-        content,
-    })
+    Ok(FileData::new(path, front_matter, content))
 }
 
 fn should_skip_file(path: &Path) -> bool {
