@@ -69,6 +69,16 @@ impl<'a> FileData<'a> {
         let org_date = doc.get(key_date);
         let org_updated = doc.get(key_updated);
 
+        if last_edit_date.is_some()
+            && is_less_than_date(&TODAY, &item_from_date(last_edit_date.unwrap()))
+        {
+            bail!("Got a LAST edit date in the future...? We think today is: {} and last edit date found is {} for path {:?}", 
+                date_to_display(Some(&TODAY)),
+                date_to_display(Some(&item_from_date(last_edit_date.unwrap()))),
+                self.path
+            )
+        }
+
         let (new_date, new_updated) =
             self.calculate_new_date_and_updated(org_date, org_updated, last_edit_date);
 
@@ -102,6 +112,11 @@ impl<'a> FileData<'a> {
         mut updated: Option<&toml_edit::Item>,
         last_edit_date: Option<toml_edit::Date>,
     ) -> (toml_edit::Item, Option<toml_edit::Item>) {
+        assert!(
+            last_edit_date.is_none()
+                || is_less_than_or_equal_date(&item_from_date(last_edit_date.unwrap()), &TODAY),
+                "Precondition to call this function is that `last_edit_date` must be today or in the past"
+        );
         // Check for wrong type
         if let Some(d) = date {
             if !d.is_datetime() {
@@ -322,6 +337,27 @@ fn is_equal_date(a: &toml_edit::Item, b: &toml_edit::Item) -> bool {
     }
 }
 
+/// Helper function to print dates in items. Panics if item is not a well formed date item object or None
+fn date_to_display(d: Option<&toml_edit::Item>) -> String {
+    if let Some(d) = d {
+        if let toml_edit::Item::Value(d) = d {
+            if let toml_edit::Value::Datetime(d) = d {
+                if let Some(d) = d.value().date {
+                    format!("{}-{}-{}", d.year, d.month, d.day)
+                } else {
+                    panic!("Expected Some")
+                }
+            } else {
+                panic!("Expected Datetime")
+            }
+        } else {
+            panic!("Expected Value")
+        }
+    } else {
+        "None".to_string()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
@@ -384,25 +420,6 @@ mod tests {
     }
 
     fn assert_same(actual: Option<&toml_edit::Item>, expected: Option<&toml_edit::Item>) {
-        fn date_to_display(d: Option<&toml_edit::Item>) -> String {
-            if let Some(d) = d {
-                if let toml_edit::Item::Value(d) = d {
-                    if let toml_edit::Value::Datetime(d) = d {
-                        if let Some(d) = d.value().date {
-                            format!("({}, {}, {})", d.year, d.month, d.day)
-                        } else {
-                            panic!("Expected Some")
-                        }
-                    } else {
-                        panic!("Expected Datetime")
-                    }
-                } else {
-                    panic!("Expected Value")
-                }
-            } else {
-                "None".to_string()
-            }
-        }
         match (actual, expected) {
             (None, None) => (),
             (None, Some(_)) | (Some(_), None) => panic!(
