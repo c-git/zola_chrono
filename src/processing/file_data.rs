@@ -286,6 +286,7 @@ fn is_equal_date(a: &toml_edit::Item, b: &toml_edit::Item) -> bool {
 /// Splits the file data into front matter and content
 /// Patterned on zola code https://github.com/c-git/zola/blob/3a73c9c5449f2deda0d287f9359927b0440a77af/components/content/src/front_matter/split.rs#L46
 pub fn extract_file_data(path: &Path) -> anyhow::Result<FileData> {
+    // TODO: Change to a constructor
     let content = fs::read_to_string(path).context("Failed to read file")?;
 
     // 2. extract the front matter and the content

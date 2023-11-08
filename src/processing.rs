@@ -1,16 +1,23 @@
+use crate::stats::Stats;
+
 use self::file_data::extract_file_data;
 use anyhow::{bail, Context};
 use log::{error, info, trace};
 use std::{fs, path::Path, process::Command};
 mod file_data;
 
-pub fn walk_directory(root_path: &Path) -> anyhow::Result<()> {
+pub fn walk_directory(root_path: &Path) -> anyhow::Result<Stats> {
+    let mut result = Stats::new();
     if root_path.is_file() {
-        if let Err(e) =
-            process_file(root_path).with_context(|| format!("Processing failed for: {root_path:?}"))
+        match process_file(root_path)
+            .with_context(|| format!("Processing failed for: {root_path:?}"))
         {
-            error!("{e:?}");
-        };
+            Ok(stats) => result += stats,
+            Err(e) => {
+                error!("{e:?}");
+                result.inc_errors();
+            }
+        }
     } else {
         for entry in fs::read_dir(root_path)
             .with_context(|| format!("Failed to read directory: {root_path:?}"))?
@@ -18,14 +25,15 @@ pub fn walk_directory(root_path: &Path) -> anyhow::Result<()> {
             let entry =
                 entry.with_context(|| format!("Failed to extract a DirEntry in {root_path:?}"))?;
             let path = entry.path();
-            walk_directory(&path)?;
+            result += walk_directory(&path)?;
         }
     }
 
-    Ok(())
+    Ok(result)
 }
 
-fn process_file(path: &Path) -> anyhow::Result<()> {
+fn process_file(path: &Path) -> anyhow::Result<Stats> {
+    let mut result = Stats::new();
     if !should_skip_file(path) {
         let mut data = extract_file_data(path)?;
         let last_edit_date =
@@ -33,12 +41,18 @@ fn process_file(path: &Path) -> anyhow::Result<()> {
         data.update_front_matter(last_edit_date)
             .context("Failed to update front_matter")?;
         if data.is_changed() {
-            data.write().context("Failed to write to file")?
+            data.write().context("Failed to write to file")?;
+            result.inc_changed();
+            trace!("(Changed)     {path:?}");
+        } else {
+            result.inc_not_changed();
+            trace!("(Not Changed) {path:?}");
         };
     } else {
-        trace!("Skipped {path:?}");
+        result.inc_skipped();
+        trace!("(Skipped)     {path:?}");
     }
-    Ok(())
+    Ok(result)
 }
 
 fn get_git_last_edit_date(path: &Path) -> anyhow::Result<Option<toml_edit::Date>> {

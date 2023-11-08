@@ -15,10 +15,12 @@ use crate::processing::walk_directory;
 pub mod cli;
 mod logging;
 mod processing;
+pub mod stats;
+use stats::Stats;
 
 pub use logging::init_logging;
 
-pub fn run(cli: &Cli) -> anyhow::Result<()> {
+pub fn run(cli: &Cli) -> anyhow::Result<Stats> {
     // This also checks that the path exists as that is required for canonicalization
     let root_path = PathBuf::from(&cli.root_path)
         .canonicalize()
@@ -34,7 +36,7 @@ pub fn run(cli: &Cli) -> anyhow::Result<()> {
     // Confirm user wants to make changes
     if !cli.unattended && !confirm_proceed(&root_path) {
         println!("Aborted at users request");
-        return Ok(());
+        return Ok(Default::default());
     }
 
     // Change current working directory to target folder so that git commands will work correctly
@@ -42,13 +44,13 @@ pub fn run(cli: &Cli) -> anyhow::Result<()> {
 
     // Walk tree and process files
     let start = Instant::now();
-    walk_directory(&root_path)?;
+    let result = walk_directory(&root_path)?;
     info!(
         "Run duration: {} ms",
         Instant::now().duration_since(start).as_millis()
     );
     println!("Run Completed");
-    Ok(())
+    Ok(result)
 }
 
 fn confirm_proceed(root_path: &Path) -> bool {
