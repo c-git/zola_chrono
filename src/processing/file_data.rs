@@ -224,6 +224,28 @@ impl<'a> FileData<'a> {
     pub(crate) fn is_changed(&self) -> bool {
         self.changed
     }
+
+    /// Build a FileData from a path
+    ///
+    /// Splits the file data into front matter and content
+    /// Patterned on zola code https://github.com/c-git/zola/blob/3a73c9c5449f2deda0d287f9359927b0440a77af/components/content/src/front_matter/split.rs#L46
+    pub fn new_from_path(path: &Path) -> anyhow::Result<FileData> {
+        let content = fs::read_to_string(path).context("Failed to read file")?;
+
+        // 2. extract the front matter and the content
+        let caps = if let Some(caps) = TOML_RE.captures(&content) {
+            caps
+        } else {
+            bail!("Failed to find front matter");
+        };
+        // caps[0] is the full match
+        // caps[1] => front matter
+        // caps[2] => content
+        let front_matter = caps.get(1).unwrap().as_str().to_string();
+        let content = caps.get(2).map_or("", |m| m.as_str()).to_string();
+
+        Ok(FileData::new(path, front_matter, content))
+    }
 }
 
 fn is_new_same_as_org(
@@ -298,29 +320,6 @@ fn is_equal_date(a: &toml_edit::Item, b: &toml_edit::Item) -> bool {
         },
         _ => false,
     }
-}
-
-/// Build a FileData from a path
-///
-/// Splits the file data into front matter and content
-/// Patterned on zola code https://github.com/c-git/zola/blob/3a73c9c5449f2deda0d287f9359927b0440a77af/components/content/src/front_matter/split.rs#L46
-pub fn extract_file_data(path: &Path) -> anyhow::Result<FileData> {
-    // TODO: Change to a constructor
-    let content = fs::read_to_string(path).context("Failed to read file")?;
-
-    // 2. extract the front matter and the content
-    let caps = if let Some(caps) = TOML_RE.captures(&content) {
-        caps
-    } else {
-        bail!("Failed to find front matter");
-    };
-    // caps[0] is the full match
-    // caps[1] => front matter
-    // caps[2] => content
-    let front_matter = caps.get(1).unwrap().as_str().to_string();
-    let content = caps.get(2).map_or("", |m| m.as_str()).to_string();
-
-    Ok(FileData::new(path, front_matter, content))
 }
 
 #[cfg(test)]

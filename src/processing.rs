@@ -1,9 +1,10 @@
 use crate::stats::Stats;
 
-use self::file_data::extract_file_data;
 use anyhow::{bail, Context};
 use log::{error, info, trace};
 use std::{fs, path::Path, process::Command};
+
+use self::file_data::FileData;
 mod file_data;
 
 pub fn walk_directory(root_path: &Path) -> anyhow::Result<Stats> {
@@ -35,7 +36,7 @@ pub fn walk_directory(root_path: &Path) -> anyhow::Result<Stats> {
 fn process_file(path: &Path) -> anyhow::Result<Stats> {
     let mut result = Stats::new();
     if !should_skip_file(path) {
-        let mut data = extract_file_data(path)?;
+        let mut data = FileData::new_from_path(path)?;
         let last_edit_date =
             get_git_last_edit_date(path).context("Failed to get last edit date from git")?;
         data.update_front_matter(last_edit_date)
