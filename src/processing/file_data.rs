@@ -215,7 +215,9 @@ impl<'a> FileData<'a> {
             (Some(last), Some(date), Some(updated)) => {
                 // All 3 dates set
                 let last = item_from_date(last);
-                if is_less_than_or_equal_date(&last, updated) {
+                if is_equal_date(date, &TODAY) {
+                    (date.clone(), None)
+                } else if is_less_than_or_equal_date(&last, updated) {
                     // Values are fine, keep same
                     (date.clone(), Some(updated.clone()))
                 } else {
