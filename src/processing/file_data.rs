@@ -157,7 +157,7 @@ impl<'a> FileData<'a> {
                     "updated is set in the future. updated is being ignored in {:?}",
                     self.path
                 );
-                date = None;
+                updated = Some(&TODAY); // Must be updated now
             }
         }
 
