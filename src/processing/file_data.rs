@@ -325,6 +325,10 @@ pub fn extract_file_data(path: &Path) -> anyhow::Result<FileData> {
 
 #[cfg(test)]
 mod tests {
+    use std::path::PathBuf;
+
+    use rstest::rstest;
+
     use super::*;
 
     #[test]
@@ -354,5 +358,90 @@ mod tests {
         assert!(is_less_than_or_equal_date(&past, &TODAY));
         assert!(!is_less_than_or_equal_date(&TODAY, &past));
         assert!(is_less_than_or_equal_date(&TODAY, &TODAY));
+    }
+
+    type DT = (u16, u8, u8); // Date Tuple
+    type DTopt = Option<DT>; // Date Tuple Option
+
+    static TODAY_TUPLE: Lazy<DTopt> = Lazy::new(|| {
+        let now = chrono::Local::now();
+        Some((now.year() as _, now.month() as _, now.day() as _))
+    });
+
+    fn item_from_tuple_opt(value: DTopt) -> toml_edit::Item {
+        if let Some(tuple) = value {
+            item_from_date(date_from_tuple(tuple))
+        } else {
+            toml_edit::Item::None
+        }
+    }
+
+    fn date_from_tuple(value: DT) -> toml_edit::Date {
+        toml_edit::Date {
+            year: value.0,
+            month: value.1,
+            day: value.2,
+        }
+    }
+    fn assert_same(actual: Option<&toml_edit::Item>, expected: Option<&toml_edit::Item>) {
+        match (actual, expected) {
+            (None, None) => (),
+            (None, Some(_)) | (Some(_), None) => panic!(
+                "actual does not match expected.\nactual: {:?}\nexpected: {:?}",
+                actual, expected
+            ),
+            (Some(actual), Some(expected)) => assert!(
+                is_equal_date(actual, expected),
+                "actual does not match expected.\nactual: {:?}\nexpected: {:?}",
+                actual,
+                expected
+            ),
+        }
+    }
+
+    #[rstest]
+    #[case(None, None, None, false, *TODAY_TUPLE, None)]
+    fn date_logic_case(
+        #[case] last: DTopt,
+        #[case] date: DTopt,
+        #[case] updated: DTopt,
+        #[case] expected_is_changed: bool,
+        #[case] expected_date: DTopt,
+        #[case] expected_updated: DTopt,
+    ) {
+        let path = PathBuf::new();
+        let mock = FileData::new(&path, Default::default(), Default::default());
+
+        // Set org_date
+        let item = item_from_tuple_opt(date);
+        let org_date = date.map(|_| &item);
+
+        // Set org_updated
+        let item = item_from_tuple_opt(updated);
+        let org_updated = updated.map(|_| &item);
+
+        // Set last
+        let last_edit_date = last.map(date_from_tuple);
+
+        // Set expected_date
+        let item = item_from_tuple_opt(expected_date);
+        let expected_date = expected_date.map(|_| &item);
+
+        // Set expected_updated
+        let item = item_from_tuple_opt(expected_updated);
+        let expected_updated = expected_updated.map(|_| &item);
+
+        let (actual_date, actual_updated) =
+            mock.calculate_new_date_and_updated(org_date, org_updated, last_edit_date);
+
+        let actual_is_changed =
+            is_new_same_as_org(org_date, org_updated, &actual_date, &actual_updated);
+
+        assert_same(Some(&actual_date), expected_date);
+        assert_same(actual_updated.as_ref(), expected_updated);
+        assert_eq!(
+            actual_is_changed, expected_is_changed,
+            "is_change doesn't match expectation"
+        );
     }
 }
