@@ -449,33 +449,32 @@ mod tests {
 
     // Add comment to light up fields
     #[rstest]
-    #[case(PAST2,        None,         None,         true,  PAST2,        *TODAY_TUPLE, "01")]
-    #[case(PAST2,        None,         PAST1,        true,  PAST2,        *TODAY_TUPLE, "02")]
-    #[case(PAST2,        None,         PAST2,        true,  PAST2,        *TODAY_TUPLE, "03")]
-    #[case(PAST2,        None,         *TODAY_TUPLE, true,  PAST2,        *TODAY_TUPLE, "04")]
-    #[case(PAST2,        PAST1,        None,         true,  PAST1,        *TODAY_TUPLE, "05")]
-    #[case(PAST2,        PAST1,        PAST1,        true,  PAST1,        *TODAY_TUPLE, "06")]
-    #[case(PAST2,        PAST1,        PAST2,        false, PAST1,        PAST2, /* */  "07")]
-    #[case(PAST2,        PAST1,        PAST3,        false, PAST1,        PAST3, /* */  "08")]
-    #[case(PAST2,        PAST1,        *TODAY_TUPLE, false, PAST1,        *TODAY_TUPLE, "09")]
-    #[case(PAST2,        PAST2,        None,         false, PAST2,        None,  /* */  "10")]
-    #[case(PAST2,        PAST2,        PAST1,        true,  PAST2,        *TODAY_TUPLE, "11")]
-    #[case(PAST2,        PAST2,        PAST2,        false, PAST2,        PAST2, /* */  "12")]
-    #[case(PAST2,        PAST2,        PAST3,        false, PAST2,        PAST3, /* */  "13")]
-    #[case(PAST2,        PAST2,        *TODAY_TUPLE, false, PAST2,        *TODAY_TUPLE, "14")]
-    #[case(PAST2,        PAST3,        None,         false, PAST3,        None,  /* */  "15")]
-    #[case(PAST2,        PAST3,        PAST1,        true,  PAST3,        *TODAY_TUPLE, "16")]
-    #[case(PAST2,        PAST3,        PAST2,        true,  PAST3,        *TODAY_TUPLE, "17")]
-    #[case(PAST2,        PAST3,        PAST3,        false, PAST3,        PAST3, /* */  "18")]
-    #[case(PAST2,        PAST3,        *TODAY_TUPLE, false, PAST3,        *TODAY_TUPLE, "19")]
-    #[case(PAST2,        *TODAY_TUPLE, None,         false, *TODAY_TUPLE, None,         "20")]
-    #[case(PAST2,        *TODAY_TUPLE, PAST1,        true,  *TODAY_TUPLE, None,         "21")]
-    #[case(PAST2,        *TODAY_TUPLE, *TODAY_TUPLE, true,  *TODAY_TUPLE, None,         "22")]
+    #[case(PAST2,        None,         None,         PAST2,        *TODAY_TUPLE, "01")]
+    #[case(PAST2,        None,         PAST1,        PAST2,        *TODAY_TUPLE, "02")]
+    #[case(PAST2,        None,         PAST2,        PAST2,        *TODAY_TUPLE, "03")]
+    #[case(PAST2,        None,         *TODAY_TUPLE, PAST2,        *TODAY_TUPLE, "04")]
+    #[case(PAST2,        PAST1,        None,         PAST1,        *TODAY_TUPLE, "05")]
+    #[case(PAST2,        PAST1,        PAST1,        PAST1,        *TODAY_TUPLE, "06")]
+    #[case(PAST2,        PAST1,        PAST2,        PAST1,        PAST2, /* */  "07")]
+    #[case(PAST2,        PAST1,        PAST3,        PAST1,        PAST3, /* */  "08")]
+    #[case(PAST2,        PAST1,        *TODAY_TUPLE, PAST1,        *TODAY_TUPLE, "09")]
+    #[case(PAST2,        PAST2,        None,         PAST2,        None,  /* */  "10")]
+    #[case(PAST2,        PAST2,        PAST1,        PAST2,        *TODAY_TUPLE, "11")]
+    #[case(PAST2,        PAST2,        PAST2,        PAST2,        PAST2, /* */  "12")]
+    #[case(PAST2,        PAST2,        PAST3,        PAST2,        PAST3, /* */  "13")]
+    #[case(PAST2,        PAST2,        *TODAY_TUPLE, PAST2,        *TODAY_TUPLE, "14")]
+    #[case(PAST2,        PAST3,        None,         PAST3,        None,  /* */  "15")]
+    #[case(PAST2,        PAST3,        PAST1,        PAST3,        *TODAY_TUPLE, "16")]
+    #[case(PAST2,        PAST3,        PAST2,        PAST3,        *TODAY_TUPLE, "17")]
+    #[case(PAST2,        PAST3,        PAST3,        PAST3,        PAST3, /* */  "18")]
+    #[case(PAST2,        PAST3,        *TODAY_TUPLE, PAST3,        *TODAY_TUPLE, "19")]
+    #[case(PAST2,        *TODAY_TUPLE, None,         *TODAY_TUPLE, None,         "20")]
+    #[case(PAST2,        *TODAY_TUPLE, PAST1,        *TODAY_TUPLE, None,         "21")]
+    #[case(PAST2,        *TODAY_TUPLE, *TODAY_TUPLE, *TODAY_TUPLE, None,         "22")]
     fn date_logic_case(
         #[case] last: DTopt,
         #[case] date: DTopt,
         #[case] updated: DTopt,
-        #[case] expected_is_changed: bool,
         #[case] expected_date: DTopt,
         #[case] expected_updated: DTopt,
         #[case] test_name: &str,
@@ -502,6 +501,25 @@ mod tests {
         // Set expected_updated
         let item = item_from_tuple_opt(expected_updated);
         let expected_updated = expected_updated.map(|_| &item);
+
+        // Set expected_is_changed
+        let expected_is_changed = match (org_date, expected_date, org_updated, expected_updated) {
+            (None, None, None, None) => false,
+            (Some(a), Some(b), None, None) | (None, None, Some(a), Some(b)) => !is_equal_date(a, b),
+            (None, None, None, Some(_))
+            | (None, None, Some(_), None)
+            | (None, Some(_), None, None)
+            | (None, Some(_), None, Some(_))
+            | (None, Some(_), Some(_), None)
+            | (None, Some(_), Some(_), Some(_))
+            | (Some(_), None, None, None)
+            | (Some(_), None, None, Some(_))
+            | (Some(_), None, Some(_), None)
+            | (Some(_), None, Some(_), Some(_))
+            | (Some(_), Some(_), None, Some(_))
+            | (Some(_), Some(_), Some(_), None) => true, // Mismatched pairs (Some with None)
+            (Some(a), Some(b), Some(c), Some(d)) => !is_equal_date(a, b) || !is_equal_date(c, d),
+        };
 
         let (actual_date, actual_updated) =
             mock.calculate_new_date_and_updated(org_date, org_updated, last_edit_date);
