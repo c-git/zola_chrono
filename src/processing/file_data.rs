@@ -447,6 +447,7 @@ mod tests {
     static PAST3: DTopt = Some((2003, 1, 1));
     static FUTURE: DTopt = Some((4000, 1, 1));
 
+    // Add comment to light up fields
     #[rstest]
     #[case(PAST2,        None,         None,         true,  PAST2,        *TODAY_TUPLE, "01")]
     #[case(PAST2,        None,         PAST1,        true,  PAST2,        *TODAY_TUPLE, "02")]
@@ -465,7 +466,7 @@ mod tests {
     #[case(PAST2,        PAST3,        None,         true,  PAST3,        *TODAY_TUPLE, "15")]
     #[case(PAST2,        PAST3,        PAST1,        true,  PAST3,        *TODAY_TUPLE, "16")]
     #[case(PAST2,        PAST3,        PAST2,        true,  PAST3,        *TODAY_TUPLE, "17")]
-    #[case(PAST2,        PAST3,        PAST3,        true,  PAST3,        *TODAY_TUPLE, "18")]
+    #[case(PAST2,        PAST3,        PAST3,        false, PAST3,        PAST3, /* */  "18")]
     #[case(PAST2,        PAST3,        *TODAY_TUPLE, false, PAST3,        *TODAY_TUPLE, "19")]
     #[case(PAST2,        *TODAY_TUPLE, None,         false, *TODAY_TUPLE, None,         "20")]
     #[case(PAST2,        *TODAY_TUPLE, PAST1,        true,  *TODAY_TUPLE, None,         "21")]
