@@ -147,8 +147,7 @@ impl<'a> FileData<'a> {
                 } else if is_equal_date(date, &TODAY) {
                     (date.clone(), None)
                 } else {
-                    debug_assert!(is_less_than_date(&TODAY, date));
-                    (last, Some(TODAY.clone()))
+                    unreachable!("Future dates should have been cleared before starting, so must be less than or equal.")
                 }
             }
             (Some(last), Some(date), Some(updated)) => {
