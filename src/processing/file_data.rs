@@ -66,13 +66,42 @@ impl<'a> FileData<'a> {
             .parse::<Document>()
             .context("Failed to parse TOML in front matter")?;
         debug_assert_eq!(doc.to_string(), toml);
-        let mut date = doc.get(key_date);
-        let mut updated = doc.get(key_updated);
+        let org_date = doc.get(key_date);
+        let org_updated = doc.get(key_updated);
 
-        // Record original values to compare if they changed at the end. Uses copy because it's just of a reference. Guaranteed by move semantics.
-        let org_date = date;
-        let org_updated = updated;
+        let (new_date, new_updated) =
+            self.calculate_new_date_and_updated(org_date, org_updated, last_edit_date);
 
+        if !is_new_same_as_org(org_date, org_updated, &new_date, &new_updated) {
+            self.changed = true;
+            match doc.entry(key_date) {
+                toml_edit::Entry::Occupied(mut entry) => *entry.get_mut() = new_date,
+                toml_edit::Entry::Vacant(entry) => {
+                    entry.insert(new_date);
+                }
+            }
+            if let Some(nu) = new_updated {
+                match doc.entry(key_updated) {
+                    toml_edit::Entry::Occupied(mut entry) => *entry.get_mut() = nu,
+                    toml_edit::Entry::Vacant(entry) => {
+                        entry.insert(nu);
+                    }
+                }
+            } else {
+                doc.remove(key_updated);
+            }
+            self.front_matter = doc.to_string();
+        }
+
+        Ok(())
+    }
+
+    fn calculate_new_date_and_updated(
+        &self,
+        mut date: Option<&toml_edit::Item>,
+        mut updated: Option<&toml_edit::Item>,
+        last_edit_date: Option<toml_edit::Date>,
+    ) -> (toml_edit::Item, Option<toml_edit::Item>) {
         // Check for wrong type
         if let Some(d) = date {
             if !d.is_datetime() {
@@ -180,41 +209,7 @@ impl<'a> FileData<'a> {
                 }
             }
         };
-
-        // Check if we've changed the starting values
-        // NB: - date must change if it was None
-        //     - This approach is slower due to loss of short circuit evaluation but I can read it, before it was...
-        let is_date_same = org_date.is_some() && is_equal_date(org_date.unwrap(), &new_date);
-        let did_update_start_and_end_none =
-            org_updated.is_none() && org_updated.is_none() == new_updated.is_none();
-        let did_updated_start_some_and_end_same_value = org_updated.is_some()
-            && new_updated.is_some()
-            && is_equal_date(org_updated.unwrap(), new_updated.as_ref().unwrap());
-        let is_update_same =
-            did_update_start_and_end_none || did_updated_start_some_and_end_same_value;
-        let is_new_same_as_org = is_date_same && is_update_same;
-        if !is_new_same_as_org {
-            self.changed = true;
-            match doc.entry(key_date) {
-                toml_edit::Entry::Occupied(mut entry) => *entry.get_mut() = new_date,
-                toml_edit::Entry::Vacant(entry) => {
-                    entry.insert(new_date);
-                }
-            }
-            if let Some(nu) = new_updated {
-                match doc.entry(key_updated) {
-                    toml_edit::Entry::Occupied(mut entry) => *entry.get_mut() = nu,
-                    toml_edit::Entry::Vacant(entry) => {
-                        entry.insert(nu);
-                    }
-                }
-            } else {
-                doc.remove(key_updated);
-            }
-            self.front_matter = doc.to_string();
-        }
-
-        Ok(())
+        (new_date, new_updated)
     }
 
     fn new(path: &'a Path, front_matter: String, content: String) -> Self {
@@ -229,6 +224,26 @@ impl<'a> FileData<'a> {
     pub(crate) fn is_changed(&self) -> bool {
         self.changed
     }
+}
+
+fn is_new_same_as_org(
+    org_date: Option<&toml_edit::Item>,
+    org_updated: Option<&toml_edit::Item>,
+    new_date: &toml_edit::Item,
+    new_updated: &Option<toml_edit::Item>,
+) -> bool {
+    // Check if we've changed the starting values
+    // NB: - date must change if it was None
+    //     - This approach is slower due to loss of short circuit evaluation but I can read it, before it was...
+    let is_date_same = org_date.is_some() && is_equal_date(org_date.unwrap(), new_date);
+    let did_update_start_and_end_none =
+        org_updated.is_none() && org_updated.is_none() == new_updated.is_none();
+    let did_updated_start_some_and_end_same_value = org_updated.is_some()
+        && new_updated.is_some()
+        && is_equal_date(org_updated.unwrap(), new_updated.as_ref().unwrap());
+    let is_update_same = did_update_start_and_end_none || did_updated_start_some_and_end_same_value;
+
+    is_date_same && is_update_same
 }
 
 /// Checks if both a and b are dates and if a < b
