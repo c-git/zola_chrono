@@ -31,8 +31,13 @@ pub struct FileData<'a> {
 }
 
 impl<'a> FileData<'a> {
+    /// Write changes to disk.
+    ///
+    /// Precondition: Data is changed. If not changed function returns an error to avoid writing out the same data read in.
     pub fn write(&self) -> anyhow::Result<()> {
-        debug_assert!(!self.changed, "We don't want to write unless we've changed. We don't want this to happen because we are just writing needlessly");
+        if !self.is_changed() {
+            bail!("No change detected. Write aborted. Path: {:?}", self.path);
+        }
         let mut file = fs::OpenOptions::new()
             .write(true)
             .truncate(true)
