@@ -158,7 +158,7 @@ impl<'a> FileData<'a> {
                 );
                 let last = item_from_date(last);
                 if is_less_than_date(date, &last) || is_equal_date(date, &last) {
-                    if is_equal_date(updated, &last) || is_equal_date(updated, &TODAY) {
+                    if is_less_than_date(updated, &TODAY) || is_equal_date(updated, &TODAY) {
                         (date.clone(), Some(updated.clone()))
                     } else {
                         (date.clone(), Some(TODAY.clone()))
