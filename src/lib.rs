@@ -34,7 +34,7 @@ pub fn run(cli: &Cli) -> anyhow::Result<Stats> {
     })?;
 
     // Confirm user wants to make changes
-    if !cli.unattended && !confirm_proceed(&root_path) {
+    if !cli.should_check_only && !cli.unattended && !confirm_proceed(&root_path) {
         println!("Aborted at users request");
         return Ok(Default::default());
     }
@@ -44,7 +44,7 @@ pub fn run(cli: &Cli) -> anyhow::Result<Stats> {
 
     // Walk tree and process files
     let start = Instant::now();
-    let result = walk_directory(&root_path)?;
+    let result = walk_directory(&root_path, cli)?;
     info!(
         "Run duration: {} ms",
         Instant::now().duration_since(start).as_millis()

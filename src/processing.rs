@@ -1,4 +1,4 @@
-use crate::stats::Stats;
+use crate::{cli::Cli, stats::Stats};
 
 use anyhow::{bail, Context};
 use log::{error, info, trace};
@@ -7,10 +7,10 @@ use std::{fs, path::Path, process::Command};
 use self::file_data::FileData;
 mod file_data;
 
-pub fn walk_directory(root_path: &Path) -> anyhow::Result<Stats> {
+pub fn walk_directory(root_path: &Path, cli: &Cli) -> anyhow::Result<Stats> {
     let mut result = Stats::new();
     if root_path.is_file() {
-        match process_file(root_path)
+        match process_file(root_path, cli)
             .with_context(|| format!("Processing failed for: {root_path:?}"))
         {
             Ok(stats) => result += stats,
@@ -26,14 +26,14 @@ pub fn walk_directory(root_path: &Path) -> anyhow::Result<Stats> {
             let entry =
                 entry.with_context(|| format!("Failed to extract a DirEntry in {root_path:?}"))?;
             let path = entry.path();
-            result += walk_directory(&path)?;
+            result += walk_directory(&path, cli)?;
         }
     }
 
     Ok(result)
 }
 
-fn process_file(path: &Path) -> anyhow::Result<Stats> {
+fn process_file(path: &Path, cli: &Cli) -> anyhow::Result<Stats> {
     let mut result = Stats::new();
     if !should_skip_file(path) {
         let mut data = FileData::new_from_path(path)?;
@@ -42,9 +42,13 @@ fn process_file(path: &Path) -> anyhow::Result<Stats> {
         data.update_front_matter(last_edit_date)
             .context("Failed to update front_matter")?;
         if data.is_changed() {
-            data.write().context("Failed to write to file")?;
             result.inc_changed();
-            trace!("(Changed)     {path:?}");
+            if cli.should_check_only {
+                trace!("(Change here) {path:?}");
+            } else {
+                data.write().context("Failed to write to file")?;
+                trace!("(Changed)     {path:?}");
+            }
         } else {
             result.inc_not_changed();
             trace!("(Not Changed) {path:?}");

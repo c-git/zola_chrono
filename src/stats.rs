@@ -64,7 +64,7 @@ impl Display for Stats {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "Changed: {}, Not Changed: {}, Skipped: {}, Errors: {}",
+            "Change: {}, Not Changed: {}, Skipped: {}, Errors: {}",
             self.changed, self.not_changed, self.skipped, self.errors
         )
     }
