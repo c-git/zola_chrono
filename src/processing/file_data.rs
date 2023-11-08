@@ -382,24 +382,45 @@ mod tests {
             day: value.2,
         }
     }
+
     fn assert_same(actual: Option<&toml_edit::Item>, expected: Option<&toml_edit::Item>) {
+        fn date_to_display(d: Option<&toml_edit::Item>) -> String {
+            if let Some(d) = d {
+                if let toml_edit::Item::Value(d) = d {
+                    if let toml_edit::Value::Datetime(d) = d {
+                        if let Some(d) = d.value().date {
+                            format!("({}, {}, {})", d.year, d.month, d.day)
+                        } else {
+                            panic!("Expected Some")
+                        }
+                    } else {
+                        panic!("Expected Datetime")
+                    }
+                } else {
+                    panic!("Expected Value")
+                }
+            } else {
+                "None".to_string()
+            }
+        }
         match (actual, expected) {
             (None, None) => (),
             (None, Some(_)) | (Some(_), None) => panic!(
-                "actual does not match expected.\nactual: {:?}\nexpected: {:?}",
-                actual, expected
+                "actual does not match expected.\nactual: {}\nexpected: {}",
+                date_to_display(actual),
+                date_to_display(expected)
             ),
-            (Some(actual), Some(expected)) => assert!(
-                is_equal_date(actual, expected),
-                "actual does not match expected.\nactual: {:?}\nexpected: {:?}",
-                actual,
-                expected
+            (Some(a), Some(b)) => assert!(
+                is_equal_date(a, b),
+                "actual does not match expected.\nactual: {}\nexpected: {}",
+                date_to_display(actual),
+                date_to_display(expected)
             ),
         }
     }
 
     #[rstest]
-    #[case(None, None, None, false, *TODAY_TUPLE, None)]
+    #[case(None, None, None, false, *TODAY_TUPLE, None)] // Base case: No dates
     fn date_logic_case(
         #[case] last: DTopt,
         #[case] date: DTopt,
