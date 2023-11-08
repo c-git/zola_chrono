@@ -9,6 +9,16 @@ Rules can also be found in the long help output of the executable `--help`.
 cargo install zola_chrono
 ```
 
+# Usage
+
+After installing run the following to see the available options
+
+```sh
+zola_chrono --help
+```
+
+To see instructions on setting up as a pre-commit hook see [my notes](https://c-git.github.io/misc/documentation-update/#setting-up-a-pre-commit-hook) for how I did it for my use case.
+
 ## License
 
 All code in this repository is dual-licensed under either:
