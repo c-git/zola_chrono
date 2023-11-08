@@ -6,6 +6,7 @@ use log4rs::{
     encode::pattern::PatternEncoder,
 };
 
+/// Initializes logging for the application (Should be called at most once)
 pub fn init_logging(log_level: LevelFilter) -> anyhow::Result<()> {
     let stdout = ConsoleAppender::builder()
         .encoder(Box::new(PatternEncoder::new(
