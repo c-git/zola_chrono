@@ -24,7 +24,7 @@ static TODAY: Lazy<toml_edit::Item> = Lazy::new(|| {
 });
 
 pub struct FileData<'a> {
-    changed: bool,
+    is_changed: bool,
     path: &'a Path,
     front_matter: String,
     content: String,
@@ -83,7 +83,7 @@ impl<'a> FileData<'a> {
             self.calculate_new_date_and_updated(org_date, org_updated, last_edit_date);
 
         if !is_new_same_as_org(org_date, org_updated, &new_date, &new_updated) {
-            self.changed = true;
+            self.is_changed = true;
             match doc.entry(key_date) {
                 toml_edit::Entry::Occupied(mut entry) => *entry.get_mut() = new_date,
                 toml_edit::Entry::Vacant(entry) => {
@@ -231,7 +231,7 @@ impl<'a> FileData<'a> {
 
     fn new(path: &'a Path, front_matter: String, content: String) -> Self {
         Self {
-            changed: false,
+            is_changed: false,
             path,
             front_matter,
             content,
@@ -239,7 +239,7 @@ impl<'a> FileData<'a> {
     }
 
     pub(crate) fn is_changed(&self) -> bool {
-        self.changed
+        self.is_changed
     }
 
     /// Build a FileData from a path
