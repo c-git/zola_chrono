@@ -1,3 +1,4 @@
+//! Stores Command Line Interface (cli)  configuration
 use clap::{Parser, ValueEnum};
 use log::LevelFilter;
 
@@ -11,13 +12,12 @@ use log::LevelFilter;
     2. `updated` should only be set if `date` is not equal to the last commit date, if it needs to be set it should match the last commit date
 "
 )]
+/// Stores the configurations acquired via the command line
 pub struct Cli {
-    #[arg(
-        value_name = "PATH",
-        help = "The root folder to start at",
-        long_help = "The root folder to start at (usually content or the folder). Required to be in a repository with a clean working tree.",
-        default_value = "."
-    )]
+    #[arg(value_name = "PATH", default_value = ".")]
+    /// The root folder to start at
+    ///
+    /// Usually you want to point this to the content folder of the zola repo. It is required for it to be in a repository with a clean working tree.
     pub root_path: String,
 
     /// If set will not prompt for confirmation before running
@@ -38,6 +38,7 @@ pub struct Cli {
 /// Exists to provide better help messages variants copied from LevelFilter as
 /// that's the type that is actually needed
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug, Default)]
+#[allow(missing_docs)]
 pub enum LogLevel {
     /// Nothing emitted in this mode
     #[default]
