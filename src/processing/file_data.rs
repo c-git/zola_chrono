@@ -31,12 +31,12 @@ pub struct FileData<'a> {
 }
 
 impl<'a> FileData<'a> {
-    pub fn write(&self, path: &Path) -> anyhow::Result<()> {
+    pub fn write(&self) -> anyhow::Result<()> {
         debug_assert!(!self.changed, "We don't want to write unless we've changed. We don't want this to happen because we are just writing needlessly");
         let mut file = fs::OpenOptions::new()
             .write(true)
             .truncate(true)
-            .open(path)?;
+            .open(self.path)?;
         let mut s = "+++".to_string();
         s.push_str(&self.front_matter);
         s.push_str("+++\n");

@@ -33,7 +33,7 @@ fn process_file(path: &Path) -> anyhow::Result<()> {
         data.update_front_matter(last_edit_date)
             .context("Failed to update front_matter")?;
         if data.is_changed() {
-            data.write(path).context("Failed to write to file")?
+            data.write().context("Failed to write to file")?
         };
     } else {
         trace!("Skipped {path:?}");
