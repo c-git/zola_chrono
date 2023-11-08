@@ -20,8 +20,15 @@ pub struct Cli {
     )]
     pub root_path: String,
 
+    /// If set will not prompt for confirmation before running
     #[arg(long, short)]
     pub unattended: bool,
+
+    /// If set will not modify any files and only report how many files would have been changed
+    ///
+    /// Return codes in this mode: (1) Error Occurred (2) Files would have been changed
+    #[arg(long = "check", short = 'c')]
+    pub should_check_only: bool,
 
     /// Set logging level to use
     #[arg(long, short, value_enum, default_value_t = LogLevel::Info)]
