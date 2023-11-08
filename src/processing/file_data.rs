@@ -118,19 +118,39 @@ impl<'a> FileData<'a> {
         }
 
         // Set new date values base on the rules.
-        // Prefer reusing the existing values as only the date is set in the generated value and not time nor offset
+        // If changing to a date, prefer copying original value cuz dates created do not include times nor offset
+        // Assumptions are documented here but are enforced above. Documented here for ease of reference and not repeated below.
+        debug_assert!(
+            date.is_none() || is_less_than_or_equal_date(date.unwrap(), &TODAY),
+            "ASSUMPTION FAILED. Expected: `date` if set to be today or in the past"
+        );
+        debug_assert!(
+            updated.is_none() || is_less_than_or_equal_date(updated.unwrap(), &TODAY),
+            "ASSUMPTION FAILED. Expected: `updated` if set to be today or in the past"
+        );
+        debug_assert!(
+            date.is_none()
+                || updated.is_none()
+                || is_less_than_or_equal_date(date.unwrap(), updated.unwrap()),
+            "ASSUMPTION FAILED. Expected: date <= updated"
+        );
         let (new_date, new_updated) = match (last_edit_date, date, updated) {
-            (None, None, _) => (TODAY.clone(), None),
-            (None, Some(curr_date), _) => {
-                if is_less_than_date(curr_date, &TODAY) {
-                    (curr_date.clone(), Some(TODAY.clone()))
-                } else if is_equal_date(curr_date, &TODAY) {
-                    (curr_date.clone(), None)
+            (None, None, _) => {
+                // No dates, set `date` to TODAY clearing updated if it's set
+                (TODAY.clone(), None)
+            }
+            (None, Some(date), _) => {
+                // This file has never been committed but has `date`
+                if is_equal_date(date, &TODAY) {
+                    // `date` is TODAY, clear updated if it's set
+                    (date.clone(), None)
                 } else {
-                    unreachable!("Future dates should have been cleared before starting, so must be less than or equal.")
+                    // Keep existing `date`. `updated` becomes TODAY
+                    (date.clone(), Some(TODAY.clone()))
                 }
             }
             (Some(last), None, _) => {
+                // Previously committed but no dates set
                 let last = item_from_date(last);
                 if is_equal_date(&last, &TODAY) {
                     (last, None)
@@ -139,43 +159,24 @@ impl<'a> FileData<'a> {
                 }
             }
             (Some(last), Some(date), None) => {
+                // Previously committed check and `date` set. Set updated only if needed (ie. `date` < `last`)
                 let last = item_from_date(last);
-                if is_equal_date(&last, date) {
-                    (date.clone(), None)
-                } else if is_less_than_date(date, &TODAY) {
-                    (date.clone(), Some(TODAY.clone()))
-                } else if is_equal_date(date, &TODAY) {
+                if is_less_than_or_equal_date(&last, date) {
                     (date.clone(), None)
                 } else {
-                    unreachable!("Future dates should have been cleared before starting, so must be less than or equal.")
+                    // `date` < `last` need to set `updated`
+                    (date.clone(), Some(TODAY.clone()))
                 }
             }
             (Some(last), Some(date), Some(updated)) => {
-                debug_assert!(
-                    !is_less_than_date(updated, date),
-                    "THIS SHOULDN'T HAPPEN WAS SUPPOSED TO HAVE BEEN CHECKED"
-                );
+                // All 3 dates set
                 let last = item_from_date(last);
-                if is_less_than_date(date, &last) || is_equal_date(date, &last) {
-                    if is_less_than_date(updated, &TODAY) || is_equal_date(updated, &TODAY) {
-                        (date.clone(), Some(updated.clone()))
-                    } else {
-                        (date.clone(), Some(TODAY.clone()))
-                    }
-                } else if is_less_than_date(date, &TODAY) || is_equal_date(date, &TODAY) {
-                    if is_equal_date(updated, &TODAY) {
-                        (date.clone(), Some(updated.clone()))
-                    } else {
-                        (date.clone(), Some(TODAY.clone()))
-                    }
+                if is_less_than_or_equal_date(&last, updated) {
+                    // Values are fine, keep same
+                    (date.clone(), Some(updated.clone()))
                 } else {
-                    debug_assert!(is_less_than_date(&TODAY, date));
-
-                    if is_equal_date(updated, &TODAY) {
-                        (TODAY.clone(), Some(updated.clone()))
-                    } else {
-                        (TODAY.clone(), None)
-                    }
+                    // `updated` is too old. Set `updated` to TODAY
+                    (date.clone(), Some(TODAY.clone()))
                 }
             }
         };
