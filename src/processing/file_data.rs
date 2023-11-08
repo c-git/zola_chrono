@@ -440,10 +440,34 @@ mod tests {
         }
     }
 
+    static PAST1: DTopt = Some((2001, 1, 1));
+    static PAST2: DTopt = Some((2002, 1, 1));
+    static PAST3: DTopt = Some((2003, 1, 1));
+    static FUTURE: DTopt = Some((4000, 1, 1));
+
     #[rstest]
-    #[case(None,         None,             None,             true,  *TODAY_TUPLE,     None,         "Base case: No dates")]
-    #[case(None,         Some((4000,1,1)), None,             true,  *TODAY_TUPLE,     None,         "Future date removed")]
-    #[case(*TODAY_TUPLE, Some((2000,1,1)), Some((2011,1,1)), true,  Some((2000,1,1)), *TODAY_TUPLE, "Both date and updated in past")]
+    #[case(PAST2,        None,         None,         true,  PAST2,        *TODAY_TUPLE, "01")]
+    #[case(PAST2,        None,         PAST1,        true,  PAST2,        *TODAY_TUPLE, "02")]
+    #[case(PAST2,        None,         PAST2,        true,  PAST2,        *TODAY_TUPLE, "03")]
+    #[case(PAST2,        None,         *TODAY_TUPLE, true,  PAST2,        *TODAY_TUPLE, "04")]
+    #[case(PAST2,        PAST1,        None,         true,  PAST1,        *TODAY_TUPLE, "05")]
+    #[case(PAST2,        PAST1,        PAST1,        true,  PAST1,        *TODAY_TUPLE, "06")]
+    #[case(PAST2,        PAST1,        PAST2,        true,  PAST1,        *TODAY_TUPLE, "07")]
+    #[case(PAST2,        PAST1,        PAST3,        true,  PAST1,        *TODAY_TUPLE, "08")]
+    #[case(PAST2,        PAST1,        *TODAY_TUPLE, true,  PAST1,        *TODAY_TUPLE, "09")]
+    #[case(PAST2,        PAST2,        None,         true,  PAST2,        *TODAY_TUPLE, "10")]
+    #[case(PAST2,        PAST2,        PAST1,        true,  PAST2,        *TODAY_TUPLE, "11")]
+    #[case(PAST2,        PAST2,        PAST2,        true,  PAST2,        *TODAY_TUPLE, "12")]
+    #[case(PAST2,        PAST2,        PAST3,        true,  PAST2,        *TODAY_TUPLE, "13")]
+    #[case(PAST2,        PAST2,        *TODAY_TUPLE, true,  PAST2,        *TODAY_TUPLE, "14")]
+    #[case(PAST2,        PAST3,        None,         true,  PAST3,        *TODAY_TUPLE, "15")]
+    #[case(PAST2,        PAST3,        PAST1,        true,  PAST3,        *TODAY_TUPLE, "16")]
+    #[case(PAST2,        PAST3,        PAST2,        true,  PAST3,        *TODAY_TUPLE, "17")]
+    #[case(PAST2,        PAST3,        PAST3,        true,  PAST3,        *TODAY_TUPLE, "18")]
+    #[case(PAST2,        PAST3,        *TODAY_TUPLE, true,  PAST3,        *TODAY_TUPLE, "19")]
+    #[case(PAST2,        *TODAY_TUPLE, None,         false, *TODAY_TUPLE, None,         "20")]
+    #[case(PAST2,        *TODAY_TUPLE, PAST1,        true,  *TODAY_TUPLE, None,         "21")]
+    #[case(PAST2,        *TODAY_TUPLE, *TODAY_TUPLE, true,  *TODAY_TUPLE, None,         "22")]
     fn date_logic_case(
         #[case] last: DTopt,
         #[case] date: DTopt,
