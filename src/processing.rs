@@ -110,9 +110,9 @@ impl<'a> FileData<'a> {
         let mut date = doc.get(key_date);
         let mut updated = doc.get(key_updated);
 
-        // Record original values to compare if they changed at the end. Clone is cheap it's just of a reference
-        let org_date = date.clone();
-        let org_updated = updated.clone();
+        // Record original values to compare if they changed at the end. Uses copy because it's just of a reference. Guaranteed by move semantics.
+        let org_date = date;
+        let org_updated = updated;
 
         // Check for wrong type
         if let Some(d) = date {
