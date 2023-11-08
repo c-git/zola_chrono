@@ -1,7 +1,7 @@
 use crate::{cli::Cli, stats::Stats};
 
 use anyhow::{bail, Context};
-use log::{error, info, trace};
+use log::{debug, error, trace, warn};
 use std::{fs, path::Path, process::Command};
 
 use self::file_data::FileData;
@@ -44,7 +44,7 @@ fn process_file(path: &Path, cli: &Cli) -> anyhow::Result<Stats> {
         if data.is_changed() {
             result.inc_changed();
             if cli.should_check_only {
-                trace!("(Change here) {path:?}");
+                warn!("(Change here) {path:?}");
             } else {
                 data.write().context("Failed to write to file")?;
                 trace!("(Changed)     {path:?}");
@@ -74,7 +74,7 @@ fn get_git_last_edit_date(path: &Path) -> anyhow::Result<Option<toml_edit::Date>
         );
     }
     let stdout = std::str::from_utf8(&output.stdout)?;
-    info!("GitDate: {:?} - {path:?}", stdout.trim());
+    debug!("GitDate: {:?} - {path:?}", stdout.trim());
 
     if stdout.is_empty() {
         Ok(None)
