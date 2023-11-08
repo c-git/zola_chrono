@@ -127,7 +127,7 @@ impl<'a> FileData<'a> {
         if let Some(u) = updated {
             if !u.is_datetime() {
                 warn!("Non date value found for `updated` in {:?}", self.path);
-                updated = None; // Only allow dates
+                updated = Some(&TODAY); // Only allow dates (Must be updated now)
             }
         }
 
@@ -136,7 +136,7 @@ impl<'a> FileData<'a> {
             if let Some(date) = date {
                 if is_less_than_date(updated_date, date) {
                     warn!("`updated` is before `date` but this should never happen. `updated` being ignored in {:?}", self.path);
-                    updated = None;
+                    updated = Some(&TODAY); // Must be updated now
                 }
             }
         }
@@ -466,7 +466,7 @@ mod tests {
     #[case(PAST2,        PAST3,        PAST1,        true,  PAST3,        *TODAY_TUPLE, "16")]
     #[case(PAST2,        PAST3,        PAST2,        true,  PAST3,        *TODAY_TUPLE, "17")]
     #[case(PAST2,        PAST3,        PAST3,        true,  PAST3,        *TODAY_TUPLE, "18")]
-    #[case(PAST2,        PAST3,        *TODAY_TUPLE, true,  PAST3,        *TODAY_TUPLE, "19")]
+    #[case(PAST2,        PAST3,        *TODAY_TUPLE, false, PAST3,        *TODAY_TUPLE, "19")]
     #[case(PAST2,        *TODAY_TUPLE, None,         false, *TODAY_TUPLE, None,         "20")]
     #[case(PAST2,        *TODAY_TUPLE, PAST1,        true,  *TODAY_TUPLE, None,         "21")]
     #[case(PAST2,        *TODAY_TUPLE, *TODAY_TUPLE, true,  *TODAY_TUPLE, None,         "22")]
