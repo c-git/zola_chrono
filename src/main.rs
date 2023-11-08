@@ -1,6 +1,6 @@
 use anyhow::bail;
 use clap::Parser;
-use log::debug;
+use log::{debug, error};
 use zola_chrono::{self, cli::Cli, init_logging, run};
 fn main() -> anyhow::Result<()> {
     let cli: Cli = Cli::parse();
@@ -11,6 +11,8 @@ fn main() -> anyhow::Result<()> {
     if stats.errors() == 0 {
         Ok(())
     } else {
-        bail!("Got {} errors", stats.errors());
+        let msg = format!("Run FAILED! {} errors", stats.errors());
+        error!("{msg}");
+        bail!("{msg}");
     }
 }
