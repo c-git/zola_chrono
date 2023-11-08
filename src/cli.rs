@@ -1,0 +1,63 @@
+use clap::{Parser, ValueEnum};
+use log::LevelFilter;
+
+#[derive(Parser, Clone, Eq, PartialEq, Ord, PartialOrd, Debug, Default)]
+#[command(
+    author,
+    version,
+    about,
+    long_about = "Updates the `date` and `updated` fields of the pages front matter
+    1. `date` should be the original publish date (Must exist and be today or earlier).
+    2. `updated` should only be set if `date` is not equal to the last commit date, if it needs to be set it should match the last commit date
+"
+)]
+pub struct Cli {
+    #[arg(
+        value_name = "PATH",
+        help = "The root folder to start at",
+        long_help = "The root folder to start at (usually content or the folder). Required to be in a repository with a clean working tree.",
+        default_value = "."
+    )]
+    pub root_path: String,
+
+    /// If set will not prompt for confirmation before running
+    #[arg(long, short)]
+    pub unattended: bool,
+
+    /// If set will not modify any files and only report how many files would have been changed
+    ///
+    /// Return codes in this mode: (1) Error Occurred (2) Files would have been changed
+    #[arg(long = "check", short = 'c')]
+    pub should_check_only: bool,
+
+    /// Set logging level to use
+    #[arg(long, short, value_enum, default_value_t = LogLevel::Info)]
+    pub log_level: LogLevel,
+}
+
+/// Exists to provide better help messages variants copied from LevelFilter as
+/// that's the type that is actually needed
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug, Default)]
+pub enum LogLevel {
+    /// Nothing emitted in this mode
+    #[default]
+    Off,
+    Error,
+    Warn,
+    Info,
+    Debug,
+    Trace,
+}
+
+impl From<LogLevel> for LevelFilter {
+    fn from(value: LogLevel) -> Self {
+        match value {
+            LogLevel::Off => LevelFilter::Off,
+            LogLevel::Error => LevelFilter::Error,
+            LogLevel::Warn => LevelFilter::Warn,
+            LogLevel::Info => LevelFilter::Info,
+            LogLevel::Debug => LevelFilter::Debug,
+            LogLevel::Trace => LevelFilter::Trace,
+        }
+    }
+}
