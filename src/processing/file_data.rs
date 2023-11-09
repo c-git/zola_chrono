@@ -447,7 +447,7 @@ mod tests {
     static PAST3: DTopt = Some((2003, 1, 1));
     static FUTURE: DTopt = Some((4000, 1, 1));
 
-    // Add comment to light up fields
+    // NB: Empty comments were added to last value to line up columns of values
     #[rstest]
     #[case(PAST2,        None,         None,         PAST2,        *TODAY_TUPLE, "01")]
     #[case(PAST2,        None,         PAST1,        PAST2,        *TODAY_TUPLE, "02")]
