@@ -361,11 +361,8 @@ fn date_to_display(d: Option<&toml_edit::Item>) -> String {
 }
 
 #[cfg(test)]
-mod tests {
-    use std::path::PathBuf;
-
-    use rstest::rstest;
-
+/// These test only test pure functions that are just building blocks for other parts of the module
+mod test_helpers {
     use super::*;
 
     #[test]
@@ -396,6 +393,16 @@ mod tests {
         assert!(!is_less_than_or_equal_date(&TODAY, &past));
         assert!(is_less_than_or_equal_date(&TODAY, &TODAY));
     }
+}
+
+#[cfg(test)]
+/// Test the core logic of the module (and helps define it, by providing cases and the expected behaviour)
+mod test_function {
+    use std::path::PathBuf;
+
+    use rstest::rstest;
+
+    use super::*;
 
     type DT = (u16, u8, u8); // Date Tuple
     type DTopt = Option<DT>; // Date Tuple Option
@@ -447,7 +454,7 @@ mod tests {
     static PAST3: DTopt = Some((2003, 1, 1));
     static FUTURE: DTopt = Some((4000, 1, 1));
 
-    // Add comment to light up fields
+    // NB: Empty comments were added to last value to line up columns of values
     #[rstest]
     #[case(PAST2,        None,         None,         PAST2,        *TODAY_TUPLE, "01")]
     #[case(PAST2,        None,         PAST1,        PAST2,        *TODAY_TUPLE, "02")]

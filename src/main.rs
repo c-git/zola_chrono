@@ -1,7 +1,7 @@
 use anyhow::bail;
 use clap::Parser;
 use log::{debug, error};
-use zola_chrono::{self, cli::Cli, init_logging, run};
+use zola_chrono::{self, init_logging, run, Cli};
 fn main() -> anyhow::Result<()> {
     let cli: Cli = Cli::parse();
     init_logging(cli.log_level.into())?;
