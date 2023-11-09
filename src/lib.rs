@@ -14,7 +14,6 @@ mod stats;
 use crate::processing::walk_directory;
 use anyhow::Context;
 use log::info;
-use stats::Stats;
 use std::{
     env,
     io::{self, Write},
@@ -25,6 +24,7 @@ use version_control_clean_check::{check_version_control, CheckOptions};
 
 pub use cli::{Cli, LogLevel};
 pub use logging::init_logging;
+pub use stats::Stats;
 
 /// Runs the body of the logic
 pub fn run(cli: &Cli) -> anyhow::Result<Stats> {
