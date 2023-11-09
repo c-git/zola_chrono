@@ -17,7 +17,8 @@ After installing run the following to see the available options
 zola_chrono --help
 ```
 
-To see instructions on setting up as a pre-commit hook see [my notes](https://c-git.github.io/misc/documentation-update/#setting-up-a-pre-commit-hook) for how I did it for my use case.
+To see instructions on setting up as a pre-push hook see [my notes](https://c-git.github.io/misc/documentation-update/#using-zola-chrono) for how I did it for my use case. 
+Used to be a pre-commit but that was more often that I cared for.
 
 ## License
 
