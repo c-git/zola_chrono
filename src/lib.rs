@@ -33,11 +33,22 @@ pub fn run(cli: &Cli) -> anyhow::Result<Stats> {
         .canonicalize()
         .with_context(|| format!("Failed to canonicalize path: '{}'", cli.root_path))?;
 
-    // Confirm it is safe to make changes
     let mut check_options = CheckOptions::new();
+
+    // This makes it possible for the user to undo our changes if any so this is fine
     check_options.allow_staged = true;
+
+    // Set when dirty is allowed (Either we aren't going to make changes so it's fine or the user opted into allowing dirty files)
+    check_options.allow_dirty = cli.should_check_only || cli.allow_dirty;
+
+    // Only allow no vcs if the user opts in as there will be no way to revert any changes we make
+    check_options.allow_no_vcs = cli.allow_no_vcs;
+
+    // Confirm it is safe to make changes
     check_version_control(&root_path, &check_options).with_context(|| {
-        format!("Failed to find a clean version control system. Files must be at least staged before tool can run.\nPath:{root_path:?}")
+        format!(
+            "Failed to find a clean version control system. Files must be at least staged before tool can run or you can opt-out of being able to revert changes. See help for more info.\nPath:{root_path:?}"
+        )
     })?;
 
     // Confirm user wants to make changes
