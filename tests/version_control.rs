@@ -42,6 +42,24 @@ fn create_dirs() -> anyhow::Result<()> {
 #[case(false, false, TD::StagedOnly, IsOk)]
 #[case(false, false, TD::DirtyOnly, IsErr)]
 #[case(false, false, TD::StagedAndDirty, IsErr)]
+// false, true
+#[case(false, true, TD::NoVCS, IsErr)]
+#[case(false, true, TD::Clean, IsOk)]
+#[case(false, true, TD::StagedOnly, IsOk)]
+#[case(false, true, TD::DirtyOnly, IsOk)]
+#[case(false, true, TD::StagedAndDirty, IsOk)]
+// true, false
+#[case(true, false, TD::NoVCS, IsErr)]
+#[case(true, false, TD::Clean, IsOk)]
+#[case(true, false, TD::StagedOnly, IsOk)]
+#[case(true, false, TD::DirtyOnly, IsOk)]
+#[case(true, false, TD::StagedAndDirty, IsOk)]
+// true, true
+#[case(true, true, TD::NoVCS, IsErr)]
+#[case(true, true, TD::Clean, IsOk)]
+#[case(true, true, TD::StagedOnly, IsOk)]
+#[case(true, true, TD::DirtyOnly, IsOk)]
+#[case(true, true, TD::StagedAndDirty, IsOk)]
 fn test_with_unattended(
     #[case] should_check_only: bool,
     #[case] allow_dirty: bool,
