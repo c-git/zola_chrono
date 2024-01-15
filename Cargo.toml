@@ -1,6 +1,6 @@
 [package]
 name = "zola_chrono"
-version = "0.2.1"
+version = "0.3.0"
 description = "Tool to set dates for zola pages based on git history"
 keywords = []
 repository = "https://github.com/c-git/zola_chrono"
