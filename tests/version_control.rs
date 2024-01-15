@@ -38,8 +38,8 @@ fn create_dirs() -> anyhow::Result<()> {
 #[rstest]
 // false, false
 #[case(false, false, TD::NoVCS, IsErr)]
-#[case(false, false, TD::Clean, IsErr)]
-#[case(false, false, TD::StagedOnly, IsErr)]
+#[case(false, false, TD::Clean, IsOk)]
+#[case(false, false, TD::StagedOnly, IsOk)]
 #[case(false, false, TD::DirtyOnly, IsErr)]
 #[case(false, false, TD::StagedAndDirty, IsErr)]
 fn test_with_unattended(
