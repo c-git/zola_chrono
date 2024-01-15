@@ -13,10 +13,12 @@ mod utils;
 
 #[test]
 fn non_existent_folder() {
-    let mut cli = Cli::default();
     let non_existent_path = "non_existent_path_bfEHgMV62y5S7LYn";
     assert!(!PathBuf::from(non_existent_path).exists());
-    cli.root_path = non_existent_path.to_string();
+    let cli = Cli {
+        root_path: non_existent_path.to_string(),
+        ..Default::default()
+    };
 
     // Ensure run fails if folder doesn't exist
     let actual = run(&cli);
