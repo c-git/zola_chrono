@@ -36,25 +36,6 @@ fn create_dirs() -> anyhow::Result<()> {
 }
 
 #[rstest]
-#[case(TD::NoVCS)]
-#[case(TD::Clean)]
-#[case(TD::StagedOnly)]
-#[case(TD::DirtyOnly)]
-#[case(TD::StagedAndDirty)]
-fn allow_no_vcs(#[case] test_dir: utils::TestDir, create_dirs: &anyhow::Result<()>) {
-    assert!(create_dirs.is_ok(), "{create_dirs:?}");
-    let expected = IsOk;
-    utils::test_run(
-        Cli {
-            unattended: true,
-            ..Default::default()
-        },
-        test_dir,
-        expected,
-    );
-}
-
-#[rstest]
 // false, false
 #[case(false, false, TD::NoVCS, IsErr)]
 #[case(false, false, TD::Clean, IsErr)]
