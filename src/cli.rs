@@ -34,10 +34,6 @@ pub struct Cli {
     #[arg(long)]
     pub allow_dirty: bool,
 
-    /// Allows changes to be made even if there is no version control. WARNING: This means that there will be no easy way to undo changes made
-    #[arg(long)]
-    pub allow_no_vcs: bool,
-
     /// Set logging level to use
     #[arg(long, short, value_enum, default_value_t = LogLevel::Info)]
     pub log_level: LogLevel,

@@ -41,9 +41,6 @@ pub fn run(cli: &Cli) -> anyhow::Result<Stats> {
     // Set when dirty is allowed (Either we aren't going to make changes so it's fine or the user opted into allowing dirty files)
     check_options.allow_dirty = cli.should_check_only || cli.allow_dirty;
 
-    // Only allow no vcs if the user opts in as there will be no way to revert any changes we make
-    check_options.allow_no_vcs = cli.allow_no_vcs;
-
     // Confirm it is safe to make changes
     check_version_control(&root_path, &check_options).with_context(|| {
         format!(

@@ -53,16 +53,15 @@ fn allow_no_vcs(#[case] test_dir: utils::TestDir, create_dirs: &anyhow::Result<(
 }
 
 #[rstest]
-//
-#[case(false, false, false, TD::NoVCS, IsErr)]
-#[case(false, false, false, TD::Clean, IsErr)]
-#[case(false, false, false, TD::StagedOnly, IsErr)]
-#[case(false, false, false, TD::DirtyOnly, IsErr)]
-#[case(false, false, false, TD::StagedAndDirty, IsErr)]
+// false, false
+#[case(false, false, TD::NoVCS, IsErr)]
+#[case(false, false, TD::Clean, IsErr)]
+#[case(false, false, TD::StagedOnly, IsErr)]
+#[case(false, false, TD::DirtyOnly, IsErr)]
+#[case(false, false, TD::StagedAndDirty, IsErr)]
 fn test_with_unattended(
     #[case] should_check_only: bool,
     #[case] allow_dirty: bool,
-    #[case] allow_no_vcs: bool,
     #[case] test_dir: utils::TestDir,
     #[case] expected: ResultExpected,
     create_dirs: &anyhow::Result<()>,
@@ -73,7 +72,6 @@ fn test_with_unattended(
         unattended: true,
         should_check_only,
         allow_dirty,
-        allow_no_vcs,
         log_level: Default::default(),
     };
     utils::test_run(cli, test_dir, expected);
