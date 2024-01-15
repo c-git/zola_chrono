@@ -1,9 +1,11 @@
+use std::env;
 use std::fmt::Debug;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 use std::path::PathBuf;
+use std::sync::OnceLock;
 use strum::EnumIter;
 use zola_chrono::run;
 use zola_chrono::Cli;
@@ -51,7 +53,11 @@ impl TestDir {
     }
 
     pub(crate) fn to_canonicalized_path(&self) -> PathBuf {
-        let result = self.to_path();
+        // Need to capture and lock in value of original directory because `run` changes the current working directory if it runs successfully and following tests fail
+        static ORG_WORKING_DIR: OnceLock<PathBuf> = OnceLock::new();
+        let org_dir =
+            ORG_WORKING_DIR.get_or_init(|| env::current_dir().expect("Failed to get current_dir"));
+        let result = org_dir.join(self.to_path());
         assert!(result.exists(), "Path not found: {result:?}");
         result.canonicalize().unwrap()
     }
