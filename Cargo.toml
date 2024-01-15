@@ -1,6 +1,6 @@
 [package]
 name = "zola_chrono"
-version = "0.2.0"
+version = "0.3.0"
 description = "Tool to set dates for zola pages based on git history"
 keywords = []
 repository = "https://github.com/c-git/zola_chrono"
@@ -25,4 +25,7 @@ toml_edit = "0.21.0"
 version-control-clean-check = "0.1.0"
 
 [dev-dependencies]
+cargo-util = "0.2.8"
+git2 = "0.18.1"
 rstest = "0.18.2"
+strum = { version = "0.25.0", features = ["derive", "strum_macros"] }
