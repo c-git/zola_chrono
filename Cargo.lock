@@ -154,9 +154,9 @@ checksum = "7f30e7476521f6f8af1a1c4c0b8cc94f0bee37d91763d0ca2665f299b6cd8aec"
 
 [[package]]
 name = "cargo-util"
-version = "0.2.6"
+version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77042b5b585f701f1cfb4b6b12ebc02b9b0cefbc8dcce235906b6bf376d4245d"
+checksum = "bb2bdd1d8ab2353ddd763881eaba60cb53f1deee0ff9d271b9f0e4cdbcd063fb"
 dependencies = [
  "anyhow",
  "core-foundation",
@@ -1523,6 +1523,7 @@ name = "zola_chrono"
 version = "0.2.0"
 dependencies = [
  "anyhow",
+ "cargo-util",
  "chrono",
  "clap",
  "git2",
