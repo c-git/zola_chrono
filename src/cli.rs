@@ -31,6 +31,8 @@ pub struct Cli {
     pub should_check_only: bool,
 
     /// Allows changes to be made even if there are dirty files in the vcs. WARNING: This means that there will be no easy way to undo changes made
+    ///
+    /// Prefer at least staging files if possible over using this option. Only provided in case users really prefer not needing to stage their files.
     #[arg(long)]
     pub allow_dirty: bool,
 
