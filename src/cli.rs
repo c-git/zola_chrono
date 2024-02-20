@@ -68,3 +68,15 @@ impl From<LogLevel> for LevelFilter {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn verify_cli() {
+        // Source: https://docs.rs/clap/latest/clap/_derive/_tutorial/index.html#testing
+        // My understanding it reports most development errors without additional effort
+        use clap::CommandFactory;
+        super::Cli::command().debug_assert()
+    }
+}
