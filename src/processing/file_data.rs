@@ -5,7 +5,7 @@ use chrono::Datelike;
 use log::warn;
 use once_cell::sync::Lazy;
 use regex::Regex;
-use toml_edit::Document;
+use toml_edit::DocumentMut;
 
 static TOML_RE: Lazy<Regex> = Lazy::new(|| {
     Regex::new(
@@ -63,7 +63,7 @@ impl<'a> FileData<'a> {
         let key_updated = "updated";
         let toml = &self.front_matter[..];
         let mut doc = toml
-            .parse::<Document>()
+            .parse::<DocumentMut>()
             .context("Failed to parse TOML in front matter")?;
         debug_assert_eq!(doc.to_string(), toml);
         let org_date = doc.get(key_date);

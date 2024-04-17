@@ -123,6 +123,7 @@ fn modify_files<P: AsRef<Path>>(path: P, files: &[&str]) -> anyhow::Result<()> {
         let mut file = fs::OpenOptions::new()
             .write(true)
             .create(true)
+            .truncate(true)
             .open(file_name)?;
         file.write_all(b"Some text\n")?;
     }

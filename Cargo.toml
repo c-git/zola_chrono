@@ -1,6 +1,6 @@
 [package]
 name = "zola_chrono"
-version = "0.3.1"
+version = "0.3.2"
 authors = ["One <one.bgz1@gmail.com>"]
 categories = []
 documentation = "https://docs.rs/zola_chrono"
@@ -27,5 +27,5 @@ version-control-clean-check = "0.1.0"
 [dev-dependencies]
 cargo-util = "0.2.8"
 git2 = "0.18.1"
-rstest = "0.18.2"
+rstest = "0.19.0"
 strum = { version = "0.26.1", features = ["derive", "strum_macros"] }
