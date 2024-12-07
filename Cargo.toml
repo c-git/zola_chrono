@@ -1,6 +1,6 @@
 [package]
 name = "zola_chrono"
-version = "0.3.2"
+version = "0.3.3"
 authors = ["One <one.bgz1@gmail.com>"]
 categories = []
 documentation = "https://docs.rs/zola_chrono"
