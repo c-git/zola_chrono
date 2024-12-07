@@ -1,6 +1,6 @@
 [package]
 name = "zola_chrono"
-version = "0.3.3"
+version = "0.4.0"
 authors = ["One <one.bgz1@gmail.com>"]
 categories = []
 documentation = "https://docs.rs/zola_chrono"
@@ -17,11 +17,11 @@ description = "Tool to set dates for zola pages based on git history"
 anyhow = "1.0.75"
 chrono = "0.4.31"
 clap = { version = "4.4.7", features = ["derive", "cargo", "wrap_help"] }
-log = "0.4.20"
-log4rs = "1.2.0"
 once_cell = "1.18.0"
 regex = "1.10.2"
 toml_edit = "0.22.6"
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 version-control-clean-check = "0.1.3"
 
 [dev-dependencies]

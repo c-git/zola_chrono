@@ -7,23 +7,21 @@
 #![doc = include_str!("../README.md")]
 
 mod cli;
-mod logging;
 mod processing;
 mod stats;
 
 use crate::processing::walk_directory;
 use anyhow::Context;
-use log::info;
 use std::{
     env,
     io::{self, Write},
     path::{Path, PathBuf},
     time::Instant,
 };
+use tracing::info;
 use version_control_clean_check::{check_version_control, CheckOptions};
 
-pub use cli::{Cli, LogLevel};
-pub use logging::init_logging;
+pub use cli::Cli;
 pub use stats::Stats;
 
 /// Runs the body of the logic

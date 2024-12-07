@@ -1,8 +1,8 @@
 use crate::{cli::Cli, stats::Stats};
 
 use anyhow::{bail, Context};
-use log::{debug, error, trace, warn};
 use std::{fs, path::Path, process::Command};
+use tracing::{debug, error, trace, warn};
 
 use self::file_data::FileData;
 mod file_data;

@@ -2,10 +2,10 @@ use std::{fs, io::Write, path::Path};
 
 use anyhow::{bail, Context};
 use chrono::Datelike;
-use log::warn;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use toml_edit::DocumentMut;
+use tracing::warn;
 
 static TOML_RE: Lazy<Regex> = Lazy::new(|| {
     Regex::new(
