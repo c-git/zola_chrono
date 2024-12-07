@@ -87,5 +87,5 @@ fn get_git_last_edit_date(path: &Path) -> anyhow::Result<Option<toml_edit::Date>
 }
 
 fn should_skip_file(path: &Path) -> bool {
-    !path.extension().is_some_and(|ext| ext == "md") || path.ends_with("_index.md")
+    path.extension().is_none_or(|ext| ext != "md") || path.ends_with("_index.md")
 }
