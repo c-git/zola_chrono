@@ -73,7 +73,6 @@ fn test_with_unattended(
         unattended: true,
         should_check_only,
         allow_dirty,
-        log_level: Default::default(),
     };
     utils::test_run(cli, test_dir, expected);
 }

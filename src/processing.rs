@@ -1,8 +1,8 @@
 use crate::{cli::Cli, stats::Stats};
 
 use anyhow::{bail, Context};
-use log::{debug, error, trace, warn};
 use std::{fs, path::Path, process::Command};
+use tracing::{debug, error, trace, warn};
 
 use self::file_data::FileData;
 mod file_data;
@@ -87,5 +87,5 @@ fn get_git_last_edit_date(path: &Path) -> anyhow::Result<Option<toml_edit::Date>
 }
 
 fn should_skip_file(path: &Path) -> bool {
-    !path.extension().is_some_and(|ext| ext == "md") || path.ends_with("_index.md")
+    path.extension().is_none_or(|ext| ext != "md") || path.ends_with("_index.md")
 }

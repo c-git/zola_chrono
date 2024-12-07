@@ -1,6 +1,5 @@
 //! Stores Command Line Interface (cli)  configuration
-use clap::{Parser, ValueEnum};
-use log::LevelFilter;
+use clap::Parser;
 
 #[derive(Parser, Clone, Eq, PartialEq, Ord, PartialOrd, Debug, Default)]
 #[command(
@@ -35,38 +34,6 @@ pub struct Cli {
     /// Prefer at least staging files if possible over using this option. Only provided in case users really prefer not needing to stage their files.
     #[arg(long)]
     pub allow_dirty: bool,
-
-    /// Set logging level to use
-    #[arg(long, short, value_enum, default_value_t = LogLevel::Info)]
-    pub log_level: LogLevel,
-}
-
-/// Exists to provide better help messages variants copied from LevelFilter as
-/// that's the type that is actually needed
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug, Default)]
-#[allow(missing_docs)]
-pub enum LogLevel {
-    /// Nothing emitted in this mode
-    #[default]
-    Off,
-    Error,
-    Warn,
-    Info,
-    Debug,
-    Trace,
-}
-
-impl From<LogLevel> for LevelFilter {
-    fn from(value: LogLevel) -> Self {
-        match value {
-            LogLevel::Off => LevelFilter::Off,
-            LogLevel::Error => LevelFilter::Error,
-            LogLevel::Warn => LevelFilter::Warn,
-            LogLevel::Info => LevelFilter::Info,
-            LogLevel::Debug => LevelFilter::Debug,
-            LogLevel::Trace => LevelFilter::Trace,
-        }
-    }
 }
 
 #[cfg(test)]

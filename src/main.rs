@@ -1,10 +1,12 @@
 use anyhow::bail;
 use clap::Parser;
-use log::{debug, error};
-use zola_chrono::{self, init_logging, run, Cli};
+use tracing::{debug, error};
+use tracing_subscriber::{fmt, layer::SubscriberExt as _, util::SubscriberInitExt as _, EnvFilter};
+use zola_chrono::{self, run, Cli};
+
 fn main() -> anyhow::Result<()> {
     let cli: Cli = Cli::parse();
-    init_logging(cli.log_level.into())?;
+    init_tracing();
     debug!("Cli: {cli:#?}");
     let stats = run(&cli)?;
     println!("File Stats: {stats}");
@@ -19,4 +21,11 @@ fn main() -> anyhow::Result<()> {
         error!("{msg}");
         bail!("{msg}");
     }
+}
+
+fn init_tracing() {
+    tracing_subscriber::registry()
+        .with(fmt::layer())
+        .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info")))
+        .init();
 }
