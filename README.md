@@ -23,7 +23,7 @@ zola_chrono --help
 See [here](https://c-git.github.io/misc/documentation-update/#rules-for-setting-date-and-updated) for a summary of the rules and a link to the test cases which best document how it works. <!-- Best to link from there to be able to update it without releasing a new version -->
 
 To see instructions on setting it up as a pre-push hook see [my notes](https://c-git.github.io/misc/documentation-update/#using-zola-chrono) for how I did it for my use case.
-Used to be a pre-commit but that was more often that I cared for.
+Used to be a pre-commit hook but that turned out to be more often that I cared for.
 
 ## License
 
