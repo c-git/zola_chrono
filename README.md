@@ -1,5 +1,6 @@
 # zola_chrono
-Designed to set dates on zola pages. 
+
+Designed to set dates on zola pages.
 It set's `date` and `updated` in zola [front matter](https://www.getzola.org/documentation/content/page/#front-matter) according to the rules listed [here](https://c-git.github.io/misc/documentation-update/#rules-for-setting-date-and-updated).
 Rules can also be found in the long help output of the executable `--help`.
 
@@ -16,11 +17,12 @@ After installing run the following to see the available options
 ```sh
 zola_chrono --help
 ```
+
 <!-- TODO find way to automate having the help output show up here. Needs to be automatic because doing it manually is not sustainable. -->
 
 See [here](https://c-git.github.io/misc/documentation-update/#rules-for-setting-date-and-updated) for a summary of the rules and a link to the test cases which best document how it works. <!-- Best to link from there to be able to update it without releasing a new version -->
 
-To see instructions on setting it up as a pre-push hook see [my notes](https://c-git.github.io/misc/documentation-update/#using-zola-chrono) for how I did it for my use case. 
+To see instructions on setting it up as a pre-push hook see [my notes](https://c-git.github.io/misc/documentation-update/#using-zola-chrono) for how I did it for my use case.
 Used to be a pre-commit but that was more often that I cared for.
 
 ## License
